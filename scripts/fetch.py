@@ -30,7 +30,9 @@ MANIFEST = RAW / "MANIFEST.json"
 
 HF_REPO = "openfoodfacts/product-database"
 HF_API = f"https://huggingface.co/api/datasets/{HF_REPO}"
-OPF_JSONL = "https://static.openproductsfacts.org/data/openproductsfacts-products.jsonl.gz"
+OPF_JSONL = (
+    "https://static.openproductsfacts.org/data/openproductsfacts-products.jsonl.gz"
+)
 
 COLUMNS = [
     "code",
@@ -81,7 +83,7 @@ def _lang_texts(obj: dict, field: str) -> list[dict]:
     prefix = field + "_"
     for key, value in obj.items():
         if key.startswith(prefix) and isinstance(value, str) and value.strip():
-            lang = key[len(prefix):]
+            lang = key[len(prefix) :]
             if 2 <= len(lang) <= 3 and lang.isalpha():
                 result.append({"lang": lang, "text": value})
     return result
@@ -89,35 +91,48 @@ def _lang_texts(obj: dict, field: str) -> list[dict]:
 
 def fetch_opf(out: Path, limit: int | None) -> int:
     rows = []
-    with urllib.request.urlopen(OPF_JSONL) as resp, gzip.open(resp, "rt", encoding="utf-8") as lines:
+    with (
+        urllib.request.urlopen(OPF_JSONL) as resp,
+        gzip.open(resp, "rt", encoding="utf-8") as lines,
+    ):
         for line in lines:
             obj = json.loads(line)
             names = _lang_texts(obj, "product_name")
             cats = obj.get("categories_tags") or []
             if not names or not cats or obj.get("obsolete"):
                 continue
-            rows.append({
-                "code": str(obj.get("code") or obj.get("_id") or ""),
-                "lang": obj.get("lang"),
-                "product_name": names,
-                "generic_name": _lang_texts(obj, "generic_name"),
-                "brands": obj.get("brands"),
-                "brands_tags": obj.get("brands_tags") or [],
-                "categories_tags": cats,
-                "countries_tags": obj.get("countries_tags") or [],
-                "stores_tags": obj.get("stores_tags") or [],
-                "quantity": obj.get("quantity"),
-                "unique_scans_n": obj.get("unique_scans_n"),
-                "obsolete": False,
-            })
+            rows.append(
+                {
+                    "code": str(obj.get("code") or obj.get("_id") or ""),
+                    "lang": obj.get("lang"),
+                    "product_name": names,
+                    "generic_name": _lang_texts(obj, "generic_name"),
+                    "brands": obj.get("brands"),
+                    "brands_tags": obj.get("brands_tags") or [],
+                    "categories_tags": cats,
+                    "countries_tags": obj.get("countries_tags") or [],
+                    "stores_tags": obj.get("stores_tags") or [],
+                    "quantity": obj.get("quantity"),
+                    "unique_scans_n": obj.get("unique_scans_n"),
+                    "obsolete": False,
+                }
+            )
             if limit and len(rows) >= limit:
                 break
     struct = pl.List(pl.Struct({"lang": pl.String, "text": pl.String}))
     schema = {
-        "code": pl.String, "lang": pl.String, "product_name": struct, "generic_name": struct,
-        "brands": pl.String, "brands_tags": pl.List(pl.String), "categories_tags": pl.List(pl.String),
-        "countries_tags": pl.List(pl.String), "stores_tags": pl.List(pl.String),
-        "quantity": pl.String, "unique_scans_n": pl.Int64, "obsolete": pl.Boolean,
+        "code": pl.String,
+        "lang": pl.String,
+        "product_name": struct,
+        "generic_name": struct,
+        "brands": pl.String,
+        "brands_tags": pl.List(pl.String),
+        "categories_tags": pl.List(pl.String),
+        "countries_tags": pl.List(pl.String),
+        "stores_tags": pl.List(pl.String),
+        "quantity": pl.String,
+        "unique_scans_n": pl.Int64,
+        "obsolete": pl.Boolean,
     }
     pl.DataFrame(rows, schema=schema).write_parquet(out, compression="zstd")
     return len(rows)
@@ -138,7 +153,7 @@ def main() -> None:
     args = parser.parse_args()
 
     RAW.mkdir(parents=True, exist_ok=True)
-    today = dt.date.today().isoformat()
+    today = dt.datetime.now(dt.UTC).date().isoformat()
     suffix = f"-limit{args.limit}" if args.limit else ""
     manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {}
 
@@ -150,8 +165,11 @@ def main() -> None:
         print(f"[{source}] → {out.relative_to(ROOT)}", file=sys.stderr)
         if source in ("food", "beauty"):
             n = fetch_hf(source, revision, out, args.limit)
-            origin = {"url": f"https://huggingface.co/datasets/{HF_REPO}", "revision": revision,
-                      "file": f"{source}.parquet"}
+            origin = {
+                "url": f"https://huggingface.co/datasets/{HF_REPO}",
+                "revision": revision,
+                "file": f"{source}.parquet",
+            }
         elif source == "products":
             n = fetch_opf(out, args.limit)
             origin = {"url": OPF_JSONL}
@@ -159,13 +177,16 @@ def main() -> None:
             raise SystemExit(f"unknown source: {source}")
         manifest[out.name] = {
             **origin,
-            "fetched": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+            "fetched": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "rows": n,
             "bytes": out.stat().st_size,
             "sha256": sha256(out),
             "license": "ODbL 1.0 (database), DbCL 1.0 (contents)",
         }
-        print(f"[{source}] {n:,} rows, {out.stat().st_size / 1e6:.1f} MB", file=sys.stderr)
+        print(
+            f"[{source}] {n:,} rows, {out.stat().st_size / 1e6:.1f} MB",
+            file=sys.stderr,
+        )
 
     MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
 
