@@ -1,0 +1,23 @@
+[project]
+name = "pgm"
+version = "0.1.0"
+description = "Item group model for receipt lines (training, export, reference)"
+authors = [
+    { name = "Carsten Wesp", email = "carsten.wesp@online.de" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.5.6",
+    "polars>=1.44.2",
+    "pyyaml>=6.0.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.25,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
