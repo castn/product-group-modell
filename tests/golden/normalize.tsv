@@ -1,0 +1,23 @@
+# input	expected  (Escapes: \t \n \\)
+Bio Vollmilch 3,5%	BIO VOLLMILCH 3,5%
+JA! H-Milch 1L	JA! H-MILCH 1L
+K-Classic Spülmittel	K-CLASSIC SPUELMITTEL
+Weißbrot	WEISSBROT
+WEIẞBROT	WEISSBROT
+Äpfel Öl Übertopf	AEPFEL OEL UEBERTOPF
+Äpfel	AEPFEL
+Crème fraîche	CREME FRAICHE
+Œufs frais	OEUFS FRAIS
+Smørrebrød	SMORREBROD
+Gut&Günstig	GUT&GUENSTIG
+  viel   Platz  	VIEL PLATZ
+Tab\tund\nZeile	TAB UND ZEILE
+Cola 0,33l (Pfand)	COLA 0,33L PFAND
+ＢＩＯ ｍｉｌｃｈ	BIO MILCH
+ﬁletspitzen	FILETSPITZEN
+Käse 1/2 Laib	KAESE 1 2 LAIB
+Joghurt 🍓	JOGHURT
+Молоко	
+	
+1,99 €	1,99
+ı İ	I
