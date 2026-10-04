@@ -1,8 +1,10 @@
 """Downloads the raw data from Open Food/Beauty/Products Facts to data/raw/.
 
-- Food and Beauty: Parquet files from Hugging Face (openfoodfacts/product-database).
-  DuckDB reads only the columns needed via HTTP range requests, so the 7.9 GB
-  file is not downloaded in full. The revision is recorded.
+- Food and Beauty: Parquet files from Hugging Face (openfoodfacts/product-database),
+  pinned to a fixed revision. The files are downloaded in full to data/raw/cache/
+  (food: about 7.8 GB, resumable) and then reduced locally with DuckDB to the
+  columns needed. Reading columns directly over HTTP fails because of the
+  number of range requests: Hugging Face answers anonymous clients with HTTP 429.
 - Products: JSONL export from static.openproductsfacts.org (not on Hugging Face),
   streamed and converted to the same schema.
 
@@ -17,7 +19,9 @@ import datetime as dt
 import gzip
 import hashlib
 import json
+import re
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -26,6 +30,7 @@ import polars as pl
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
+CACHE = RAW / "cache"
 MANIFEST = RAW / "MANIFEST.json"
 
 HF_REPO = "openfoodfacts/product-database"
@@ -55,11 +60,52 @@ def hf_revision() -> str:
         return json.load(resp)["sha"]
 
 
+def _open_with_retry(req: urllib.request.Request, attempts: int = 10):
+    """On HTTP 429, waits until the rate limit window has been reset."""
+    for _ in range(attempts - 1):
+        try:
+            return urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            if e.code != 429:
+                raise
+            # Hugging Face: 'ratelimit: "resolvers";r=0;t=33' (t = seconds until reset)
+            m = re.search(r"t=(\d+)", e.headers.get("ratelimit", ""))
+            wait = int(m.group(1)) if m else int(e.headers.get("Retry-After", 60))
+            print(f"  HTTP 429, waiting {wait + 5} s", file=sys.stderr)
+            time.sleep(wait + 5)
+    return urllib.request.urlopen(req)
+
+
+def download(url: str, out: Path) -> None:
+    """Downloads url to out; an interrupted download is resumed."""
+    if out.exists():
+        return
+    part = out.with_suffix(out.suffix + ".part")
+    done = part.stat().st_size if part.exists() else 0
+    req = urllib.request.Request(url, headers={"Range": f"bytes={done}-"})
+    with _open_with_retry(req) as resp:
+        if done and resp.status != 206:
+            done = 0  # server cannot resume, start over
+        total = done + int(resp.headers.get("Content-Length", 0))
+        with part.open("ab" if done else "wb") as f:
+            last = 0.0
+            while chunk := resp.read(1 << 20):
+                f.write(chunk)
+                done += len(chunk)
+                if done / 1e9 - last >= 0.1 or done == total:
+                    last = done / 1e9
+                    print(f"  {last:.1f} / {total / 1e9:.1f} GB", file=sys.stderr)
+    part.rename(out)
+
+
 def fetch_hf(split: str, revision: str, out: Path, limit: int | None) -> int:
-    src = f"hf://datasets/{HF_REPO}@{revision}/{split}.parquet"
+    CACHE.mkdir(parents=True, exist_ok=True)
+    src = CACHE / f"{split}-{revision[:12]}.parquet"
+    url = (
+        f"https://huggingface.co/datasets/{HF_REPO}/resolve/{revision}/{split}.parquet"
+    )
+    download(url, src)
     con = duckdb.connect()
-    con.sql("INSTALL httpfs; LOAD httpfs;")
-    con.sql("SET enable_progress_bar = true;")
     limit_sql = f"LIMIT {limit}" if limit else ""
     con.sql(f"""
         COPY (
