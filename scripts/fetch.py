@@ -18,6 +18,7 @@ import argparse
 import datetime as dt
 import gzip
 import hashlib
+import http.client
 import json
 import re
 import sys
@@ -76,25 +77,50 @@ def _open_with_retry(req: urllib.request.Request, attempts: int = 10):
     return urllib.request.urlopen(req)
 
 
-def download(url: str, out: Path) -> None:
-    """Downloads url to out; an interrupted download is resumed."""
+def hf_file_info(revision: str, path: str) -> dict:
+    """Size and SHA-256 of an LFS file in the given revision."""
+    with urllib.request.urlopen(f"{HF_API}/tree/{revision}") as resp:
+        entry = next(e for e in json.load(resp) if e["path"] == path)
+    return {"size": entry["lfs"]["size"], "sha256": entry["lfs"]["oid"]}
+
+
+def download(url: str, out: Path, size: int, sha: str, attempts: int = 20) -> None:
+    """Downloads url to out and checks size and SHA-256.
+
+    If the connection drops (even without an error message), the download
+    resumes at the last position via Range.
+    """
     if out.exists():
         return
     part = out.with_suffix(out.suffix + ".part")
-    done = part.stat().st_size if part.exists() else 0
-    req = urllib.request.Request(url, headers={"Range": f"bytes={done}-"})
-    with _open_with_retry(req) as resp:
-        if done and resp.status != 206:
-            done = 0  # server cannot resume, start over
-        total = done + int(resp.headers.get("Content-Length", 0))
-        with part.open("ab" if done else "wb") as f:
-            last = 0.0
-            while chunk := resp.read(1 << 20):
-                f.write(chunk)
-                done += len(chunk)
-                if done / 1e9 - last >= 0.1 or done == total:
+    for _ in range(attempts):
+        done = part.stat().st_size if part.exists() else 0
+        if done >= size:
+            break
+        req = urllib.request.Request(url, headers={"Range": f"bytes={done}-"})
+        try:
+            with _open_with_retry(req) as resp:
+                if done and resp.status != 206:
+                    done = 0  # server cannot resume, start over
+                with part.open("ab" if done else "wb") as f:
                     last = done / 1e9
-                    print(f"  {last:.1f} / {total / 1e9:.1f} GB", file=sys.stderr)
+                    while chunk := resp.read(1 << 20):
+                        f.write(chunk)
+                        done += len(chunk)
+                        if done / 1e9 - last >= 0.1:
+                            last = done / 1e9
+                            print(
+                                f"  {last:.1f} / {size / 1e9:.1f} GB", file=sys.stderr
+                            )
+        except (OSError, http.client.HTTPException) as e:
+            print(f"  connection lost ({e}), resuming", file=sys.stderr)
+            time.sleep(10)
+    if part.stat().st_size != size:
+        raise SystemExit(f"{part}: {part.stat().st_size} instead of {size} bytes")
+    print("  checking SHA-256", file=sys.stderr)
+    if sha256(part) != sha:
+        part.unlink()
+        raise SystemExit(f"{part}: SHA-256 does not match, file deleted")
     part.rename(out)
 
 
@@ -104,7 +130,8 @@ def fetch_hf(split: str, revision: str, out: Path, limit: int | None) -> int:
     url = (
         f"https://huggingface.co/datasets/{HF_REPO}/resolve/{revision}/{split}.parquet"
     )
-    download(url, src)
+    info = hf_file_info(revision, f"{split}.parquet")
+    download(url, src, info["size"], info["sha256"])
     con = duckdb.connect()
     limit_sql = f"LIMIT {limit}" if limit else ""
     con.sql(f"""
@@ -196,6 +223,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, help="only N rows per source (test)")
     parser.add_argument("--only", default="food,beauty,products")
+    parser.add_argument(
+        "--revision",
+        help="revision (commit) on Hugging Face; default: current state. "
+        "To resume a download, pass the same revision.",
+    )
     args = parser.parse_args()
 
     RAW.mkdir(parents=True, exist_ok=True)
@@ -204,7 +236,9 @@ def main() -> None:
     manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else {}
 
     sources = args.only.split(",")
-    revision = hf_revision() if {"food", "beauty"} & set(sources) else None
+    revision = args.revision
+    if revision is None and {"food", "beauty"} & set(sources):
+        revision = hf_revision()
 
     for source in sources:
         out = RAW / f"{source}-{today}{suffix}.parquet"
@@ -233,8 +267,8 @@ def main() -> None:
             f"[{source}] {n:,} rows, {out.stat().st_size / 1e6:.1f} MB",
             file=sys.stderr,
         )
-
-    MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
+        # write after every source so that a later error loses nothing
+        MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":
