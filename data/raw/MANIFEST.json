@@ -1,0 +1,30 @@
+{
+  "products-2026-10-02.parquet": {
+    "url": "https://static.openproductsfacts.org/data/openproductsfacts-products.jsonl.gz",
+    "fetched": "2026-10-02T22:53:40+00:00",
+    "rows": 22416,
+    "bytes": 852294,
+    "sha256": "00ea71ae046ff98bebf9344982a413c535f8a4427df9ed360c274c862e1c1a45",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "beauty-2026-10-02.parquet": {
+    "url": "https://huggingface.co/datasets/openfoodfacts/product-database",
+    "revision": "33958b069a1a797464b0fe47320a8c2511b04c8a",
+    "file": "beauty.parquet",
+    "fetched": "2026-10-02T22:53:45+00:00",
+    "rows": 26167,
+    "bytes": 1263186,
+    "sha256": "12f921f53359746902329259b51de16f746a1dedf7106a4c83ce3c89ff1797fb",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "food-2026-10-02.parquet": {
+    "url": "https://huggingface.co/datasets/openfoodfacts/product-database",
+    "revision": "33958b069a1a797464b0fe47320a8c2511b04c8a",
+    "file": "food.parquet",
+    "fetched": "2026-10-02T23:02:21+00:00",
+    "rows": 1870169,
+    "bytes": 77802583,
+    "sha256": "cee41cc6bba344441550e681deedac9da4df222e089f3d054fd97473a94ea0f8",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  }
+}
