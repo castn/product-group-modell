@@ -26,5 +26,45 @@
     "bytes": 77802583,
     "sha256": "cee41cc6bba344441550e681deedac9da4df222e089f3d054fd97473a94ea0f8",
     "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "tax-food-2026-10-03.json": {
+    "url": "https://static.openfoodfacts.org/data/taxonomies/categories.json",
+    "fetched": "2026-10-03T09:05:44+00:00",
+    "rows": 14718,
+    "bytes": 4678361,
+    "sha256": "e4ee9663396a6ba7d549589cd98eacfd7683290ec6189ef610405e79a77885ea",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "tax-beauty-2026-10-03.json": {
+    "url": "https://static.openbeautyfacts.org/data/taxonomies/categories.json",
+    "fetched": "2026-10-03T09:05:49+00:00",
+    "rows": 195,
+    "bytes": 223957,
+    "sha256": "582e55ad189b121ed17ef914b528f6da64649b3bce75bec907d5e011de54d99b",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "tax-products-2026-10-03.json": {
+    "url": "https://static.openproductsfacts.org/data/taxonomies/categories.json",
+    "fetched": "2026-10-03T09:05:57+00:00",
+    "rows": 5519,
+    "bytes": 3614746,
+    "sha256": "04399a339f2ed09b2bb31a0be8d38958f6d30adf9dc3eae493fa65f9cccdbdcd",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "petfood-2026-10-03.parquet": {
+    "url": "https://static.openpetfoodfacts.org/data/openpetfoodfacts-products.jsonl.gz",
+    "fetched": "2026-10-03T09:11:22+00:00",
+    "rows": 4023,
+    "bytes": 202157,
+    "sha256": "ca199af4ed28aaa3cfe994f2ca5f56528dc8762e175550c9eeb85b329b47860f",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
+  },
+  "tax-petfood-2026-10-03.json": {
+    "url": "https://static.openpetfoodfacts.org/data/taxonomies/categories.json",
+    "fetched": "2026-10-03T09:11:27+00:00",
+    "rows": 30,
+    "bytes": 27227,
+    "sha256": "63a30b066f00b43b86e81952e056e1765af022352938629fb99a524e15b91b3e",
+    "license": "ODbL 1.0 (database), DbCL 1.0 (contents)"
   }
 }

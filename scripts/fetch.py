@@ -1,17 +1,21 @@
-"""Downloads the raw data from Open Food/Beauty/Products Facts to data/raw/.
+"""Downloads the raw data from Open Food/Beauty/Products/Pet Food Facts to data/raw/.
 
 - Food and Beauty: Parquet files from Hugging Face (openfoodfacts/product-database),
   pinned to a fixed revision. The files are downloaded in full to data/raw/cache/
   (food: about 7.8 GB, resumable) and then reduced locally with DuckDB to the
   columns needed. Reading columns directly over HTTP fails because of the
   number of range requests: Hugging Face answers anonymous clients with HTTP 429.
-- Products: JSONL export from static.openproductsfacts.org (not on Hugging Face),
-  streamed and converted to the same schema.
+- Products and Petfood: JSONL exports from static.openproductsfacts.org and
+  static.openpetfoodfacts.org (not on Hugging Face), streamed and converted to
+  the same schema. Pet food is not in Open Food Facts.
 
 There is no filtering by language or country (step 10 needs all languages),
 only entries without a product name or without a category are dropped.
 
-Usage:  uv run scripts/fetch.py [--limit N] [--only food,beauty,products]
+Plus the category taxonomies of the projects (tax-food, tax-beauty, tax-products,
+tax-petfood), unchanged as JSON.
+
+Usage:  uv run scripts/fetch.py [--limit N] [--only food,beauty,products,tax-food,…]
 """
 
 import argparse
@@ -36,9 +40,17 @@ MANIFEST = RAW / "MANIFEST.json"
 
 HF_REPO = "openfoodfacts/product-database"
 HF_API = f"https://huggingface.co/api/datasets/{HF_REPO}"
-OPF_JSONL = (
-    "https://static.openproductsfacts.org/data/openproductsfacts-products.jsonl.gz"
-)
+# Category taxonomies (JSON: tag → {name, parents, children, …})
+TAXONOMIES = {
+    "tax-food": "https://static.openfoodfacts.org/data/taxonomies/categories.json",
+    "tax-beauty": "https://static.openbeautyfacts.org/data/taxonomies/categories.json",
+    "tax-products": "https://static.openproductsfacts.org/data/taxonomies/categories.json",
+    "tax-petfood": "https://static.openpetfoodfacts.org/data/taxonomies/categories.json",
+}
+JSONL = {
+    "products": "https://static.openproductsfacts.org/data/openproductsfacts-products.jsonl.gz",
+    "petfood": "https://static.openpetfoodfacts.org/data/openpetfoodfacts-products.jsonl.gz",
+}
 
 COLUMNS = [
     "code",
@@ -162,10 +174,10 @@ def _lang_texts(obj: dict, field: str) -> list[dict]:
     return result
 
 
-def fetch_opf(out: Path, limit: int | None) -> int:
+def fetch_jsonl(url: str, out: Path, limit: int | None) -> int:
     rows = []
     with (
-        urllib.request.urlopen(OPF_JSONL) as resp,
+        urllib.request.urlopen(url) as resp,
         gzip.open(resp, "rt", encoding="utf-8") as lines,
     ):
         for line in lines:
@@ -222,7 +234,11 @@ def sha256(path: Path) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, help="only N rows per source (test)")
-    parser.add_argument("--only", default="food,beauty,products")
+    parser.add_argument(
+        "--only",
+        default="food,beauty,products,petfood,"
+        "tax-food,tax-beauty,tax-products,tax-petfood",
+    )
     parser.add_argument(
         "--revision",
         help="revision (commit) on Hugging Face; default: current state. "
@@ -241,18 +257,24 @@ def main() -> None:
         revision = hf_revision()
 
     for source in sources:
-        out = RAW / f"{source}-{today}{suffix}.parquet"
+        ext = "json" if source in TAXONOMIES else "parquet"
+        out = RAW / f"{source}-{today}{suffix}.{ext}"
         print(f"[{source}] → {out.relative_to(ROOT)}", file=sys.stderr)
-        if source in ("food", "beauty"):
+        if source in TAXONOMIES:
+            with urllib.request.urlopen(TAXONOMIES[source]) as resp:
+                out.write_bytes(resp.read())
+            n = len(json.loads(out.read_bytes()))
+            origin = {"url": TAXONOMIES[source]}
+        elif source in ("food", "beauty"):
             n = fetch_hf(source, revision, out, args.limit)
             origin = {
                 "url": f"https://huggingface.co/datasets/{HF_REPO}",
                 "revision": revision,
                 "file": f"{source}.parquet",
             }
-        elif source == "products":
-            n = fetch_opf(out, args.limit)
-            origin = {"url": OPF_JSONL}
+        elif source in JSONL:
+            n = fetch_jsonl(JSONL[source], out, args.limit)
+            origin = {"url": JSONL[source]}
         else:
             raise SystemExit(f"unknown source: {source}")
         manifest[out.name] = {
