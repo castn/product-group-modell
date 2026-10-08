@@ -10,7 +10,7 @@ Check: both implementations must match the golden values under `tests/golden/` e
 
 ```kotlin
 data class GroupPrediction(
-    val groupId: Int,        // item group ID of the app (mapping/groups.yaml)
+    val groupId: String,     // ItemGroup.id of the app, e.g. "dairy" (mapping/groups.yaml)
     val confidence: Float,   // 0..1, calibrated
     val level: Level,
 )
@@ -22,13 +22,15 @@ interface ProductGroupClassifier {
     /** null if the confidence is below the suggestion threshold or the name has no features. */
     fun classify(itemName: String, store: String? = null): GroupPrediction?
     /** The k most likely groups, sorted in descending order. */
-    fun topK(itemName: String, store: String? = null, k: Int = 3): List<Pair<Int, Float>>
+    fun topK(itemName: String, store: String? = null, k: Int = 3): List<Pair<String, Float>>
 }
 ```
 
 - `itemName`: the item name of a receipt line, as the app's parser delivers it. Price, tax marker and item number are already removed.
 - `store`: name of the chain (e.g. `"Rewe"`), or `null` if unknown. It is normalized like the item name.
-- There is no "other" group. Uncertain cases return `null`, and the next source (dictionary) takes over.
+- The model only predicts the groups with `model: true` in `mapping/groups.yaml`. `deposit` stays a rule in the app, `other` is only chosen by the user.
+- Uncertain cases return `null`, and the next source (dictionary) takes over.
+- In the app, the model sits in `ItemGroupClassifier` between `WORDS` and `DICTIONARY` (its own `ItemGroupSource`, e.g. `MODEL`).
 
 ## Normalization
 
