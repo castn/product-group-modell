@@ -1,0 +1,394 @@
+# Mapping of the categories of Open Food/Beauty/Products Facts to the item groups
+# of the app (mapping/groups.yaml).
+#
+# Rules (implemented in src/pgm/categories.py):
+# - All ancestors from the taxonomy are added to the categories of a product.
+# - Of the mapped categories, only the most specific count, i.e. those below
+#   which no other mapped category of the product lies.
+# - If these lead to different groups, the product is dropped (conflict).
+#   Resolve by adding the common, more specific category.
+# - ~group: weak mapping for broad categories. It only counts if there is no
+#   strong mapping among the most specific categories (like "~" in the app's
+#   dictionary): jam is fruit (~produce) and jam (pantry) → pantry.
+# - null: deliberately ignore the category (cross-cutting like "frozen" or
+#   "organic", or too broad). It counts neither as a match nor as a conflict.
+# - _drop: drop the product entirely (misclassified or unusable entries).
+# - _default: group for products of the source without a mappable category.
+#
+# Guideline as in the app: groups by content, not by storage
+# (frozen peas → produce). Doubtful cases are commented with "?".
+
+food:
+  # --- cross-cutting and too broad ------------------------------------------
+  en:plant-based-foods-and-beverages: null
+  en:plant-based-foods: null
+  en:fermented-foods: null
+  en:frozen-foods: null
+  en:canned-foods: null
+  en:dried-products: null
+  en:dried-products-to-be-rehydrated: null
+  en:fresh-foods: null
+  en:farming-products: null
+  en:groceries: null
+  en:breakfasts: null
+  en:festive-foods: null
+  en:christmas-foods-and-drinks: null
+  en:easter-food: null
+  en:cereals-and-potatoes: null
+  en:spreads: null
+  en:plant-based-spreads: null
+  en:salted-spreads: null
+  en:desserts: null
+  en:vegan-products: null
+  en:products-for-specific-diets: null
+  en:products-without-gluten: null
+  en:specific-products: null
+  en:pasteurised-products: null
+  en:mountain-products: null
+  en:food-additives: null
+  en:appetizers: null
+  en:fruits-and-vegetables-based-foods: null
+  en:vegetable-based-foods-and-beverages: null
+  en:fruit-based-foods-and-beverages: null
+
+  # --- produce ---------------------------------------------------------------
+  en:fruits-based-foods: ~produce
+  en:fruits: ~produce
+  en:fresh-fruits: produce
+  en:frozen-fruits: produce
+  en:vegetables-based-foods: ~produce
+  en:vegetables: ~produce
+  en:fresh-vegetables: produce
+  en:frozen-vegetables: produce
+  en:mixed-vegetables: produce
+  en:potatoes: produce
+  en:mushrooms-and-their-products: produce
+  en:culinary-plants: produce
+  en:herbs: ~produce
+  en:salads: ~produce            # leaf salads; ready-made salads see prepared-salads
+  en:peas: produce              # ? fresh/frozen peas; dried ones via legumes → pantry
+
+  # --- bakery ----------------------------------------------------------------
+  en:breads: bakery
+  en:bread-rolls: bakery
+  en:pre-baked-breads: bakery
+  en:crispbreads: bakery
+  en:flatbreads: bakery
+  en:cakes: bakery
+  en:pastries: bakery
+  en:viennoiseries: bakery
+  en:sweet-pastries-and-pies: bakery
+  en:bakery-products: bakery
+  en:german-bakery-products: ~bakery
+  en:brioches: bakery
+  en:toasts: bakery             # ? toast bread; rusks as well
+  en:biscuits-and-cakes: null   # mixed: cakes → bakery, biscuits → sweets_snacks
+
+  # --- dairy -----------------------------------------------------------------
+  en:dairies: dairy
+  en:cheeses: dairy
+  en:grilling-cheeses: dairy    # also under meat-alternatives
+  en:eggs: dairy
+  en:butters: dairy
+  en:margarines: dairy
+  en:spreadable-fats: dairy     # ? butter/margarine blends
+  en:dairy-desserts: dairy
+  en:rice-puddings: dairy
+  en:puddings: dairy
+  en:dairy-substitutes: ~dairy   # ? oat drink, soy yoghurt: chilled shelf like milk
+  en:milk-substitutes: dairy
+  en:plant-based-milk-alternatives: dairy
+  en:non-dairy-yogurts: dairy
+  en:cheese-substitutes: dairy
+  en:plant-based-creams: dairy
+  en:cheese-spreads: dairy
+  en:baby-milks: baby
+
+  # --- meat_fish -------------------------------------------------------------
+  en:meats-and-their-products: ~meat_fish
+  en:meats: ~meat_fish
+  en:prepared-meats: meat_fish
+  en:sausages: meat_fish
+  en:seafood: meat_fish
+  en:fishes-and-their-products: ~meat_fish
+  en:canned-fishes: meat_fish
+  en:meat-spreads: meat_fish
+  en:meat-alternatives: meat_fish   # ? tofu, vegan sausage: substitute for meat
+  en:meat-analogues: meat_fish
+  de:fleischsalat: ready_meals
+
+  # --- pantry ----------------------------------------------------------------
+  en:cereals-and-their-products: ~pantry
+  en:flours: pantry
+  en:pastas: ~pantry
+  en:rices: ~pantry
+  en:breakfast-cereals: pantry
+  en:mueslis: pantry
+  en:flakes: pantry
+  en:legumes-and-their-products: ~pantry
+  en:legumes: ~pantry
+  en:canned-vegetables: pantry
+  en:canned-legumes: pantry
+  en:canned-tomatoes: pantry
+  en:tomatoes-and-their-products: pantry
+  en:fresh-tomatoes: produce
+  en:tomatoes: produce
+  en:fruit-and-vegetable-preserves: pantry
+  en:pickles: pantry
+  en:compotes: pantry
+  en:canned-fruits: pantry
+  en:dried-fruits: pantry
+  en:jams: pantry
+  en:sweet-spreads: pantry
+  en:bee-products: pantry
+  en:honeys: pantry
+  en:nuts-and-their-products: ~pantry
+  en:nuts: ~pantry
+  en:seeds: pantry
+  en:nut-butters: pantry
+  en:condiments: pantry
+  en:sauces: pantry
+  en:fats: pantry
+  en:vegetable-fats: pantry
+  en:vegetable-oils: pantry
+  en:vinegars: pantry
+  en:sweeteners: pantry
+  en:sugars: pantry
+  en:salts: pantry
+  en:spices: pantry
+  en:herbs-and-spices: pantry
+  en:cooking-helpers: pantry
+  en:pastry-helpers: pantry
+  en:baking-mixes: pantry
+  en:dessert-mixes: pantry
+  en:broths: pantry
+  en:dried-meals: ready_meals   # ? packet meals
+  en:protein-powders: pantry    # ?
+  en:bodybuilding-supplements: ~pantry  # ?
+  en:dietary-supplements: drugstore
+
+  # --- ready_meals -----------------------------------------------------------
+  en:meals: ready_meals
+  en:pizzas-pies-and-quiches: ready_meals
+  en:prepared-salads: ready_meals
+  en:soups: ready_meals
+  en:sandwiches: ready_meals
+  en:stuffed-pastas: ready_meals
+  en:gnocchi: ready_meals       # ?
+  en:hummus: ready_meals
+  en:dips: ready_meals
+  en:pestos: pantry
+  en:breaded-products: null  # breaded meat/fish/cheese via the ingredient
+  en:breaded-fish: meat_fish
+  en:frozen-ready-made-meals: ready_meals
+
+  # --- sweets_snacks ---------------------------------------------------------
+  en:snacks: ~sweets_snacks
+  en:sweet-snacks: sweets_snacks
+  en:salty-snacks: ~sweets_snacks
+  en:confectioneries: sweets_snacks
+  en:chocolates: sweets_snacks
+  en:cocoa-and-its-products: null   # mixed: chocolate vs. cocoa powder
+  en:biscuits-and-crackers: ~sweets_snacks
+  en:biscuits: sweets_snacks
+  en:gingerbreads: sweets_snacks
+  en:waffles: sweets_snacks
+  en:bars: sweets_snacks
+  en:chips-and-fries: null  # crisps → crisps, fries → frozen-fried-potatoes
+  en:frozen-fried-potatoes: ready_meals  # as in the app's dictionary (pommes)
+  en:frozen-desserts: sweets_snacks
+  en:ice-creams-and-sorbets: sweets_snacks
+  en:chewing-gums: sweets_snacks
+  en:marzipan: sweets_snacks
+  en:popcorn: sweets_snacks
+  en:puffed-cereal-cakes: sweets_snacks
+  en:salted-nuts: sweets_snacks
+  en:roasted-nuts: sweets_snacks
+  en:chocolate-spreads: pantry
+  en:cocoa-and-hazelnuts-spreads: pantry
+
+  # --- drinks ----------------------------------------------------------------
+  en:beverages: ~drinks
+  en:beverages-and-beverages-preparations: drinks
+  en:beverage-preparations: drinks
+  en:hot-beverages: drinks
+  en:coffees: drinks
+  en:teas: drinks
+  en:herbal-teas: drinks
+  en:cocoa-and-chocolate-powders: drinks
+  en:waters: drinks
+  en:syrups: drinks
+  en:non-alcoholic-beers: drinks
+  en:plant-based-beverages: ~drinks
+  en:dairy-drinks: dairy
+
+  # --- alcohol ---------------------------------------------------------------
+  en:alcoholic-beverages: alcohol
+  en:wines: alcohol
+  en:beers: ~alcohol
+  en:distilled-beverages: alcohol
+  en:liqueurs: alcohol
+  en:premixed-alcoholic-beverages: alcohol
+
+  # --- baby ------------------------------------------------------------------
+  en:baby-foods: baby
+
+  # --- added from the report (frequently unmapped) --------------------------
+  en:plant-based-spreads: ready_meals   # ? vegan spreads like delicatessen
+  en:lentil-spreads: ready_meals
+  en:plant-based-pates: ready_meals
+  en:egg-salads: ready_meals
+  en:cheese-spreads-substitutes: dairy
+  en:cake-mixes: pantry
+  en:baker-s-yeast: pantry
+  en:yeast: pantry
+  en:baking-powder-or-raising-agent: pantry
+  en:bicarbonates-of-soda: pantry
+  en:food-colorings: pantry
+  en:gelatin: pantry
+  en:mashed-potatoes: pantry            # ? mostly mash powder
+  en:instant-mashed-potatoes: pantry
+  en:potato-preparations: ready_meals   # rösti, croquettes
+  en:rostis: ready_meals
+  en:ajvar: pantry
+  en:caviars: meat_fish
+  en:spinach-with-cream-sauce: produce  # frozen creamed spinach: content is vegetables
+  en:prepared-vegetables: produce
+  en:vegetables-prepared-processed-frozen: produce
+  en:advent-calendars: sweets_snacks
+  en:pancakes: bakery
+  en:potato-salads: ready_meals         # otherwise via potatoes → produce
+  en:bread-crumbs: pantry               # otherwise via breads → bakery
+  # free-text categories that occur as en:/de: without a taxonomy entry
+  en:getranke: ~drinks
+  en:getranke-und-getrankezubereitungen: ~drinks
+  en:milchprodukte: dairy
+  en:kase: dairy
+  en:susser-snack: sweets_snacks
+  en:susse-brotaufstriche: pantry
+  en:gewurze: pantry
+  en:gewurzmittel: pantry
+  en:nahrungserganzungsmittel: drugstore
+  en:gemusebasierte-lebensmittel: ~produce
+  de:obst: produce
+  de:fruchtaufstrich: pantry
+  de:babykost-nach-dem-4-monat: baby
+
+beauty:
+  # Open Beauty Facts contains almost only cosmetics and personal care.
+  _default: drugstore
+  en:non-open-products-facts: null
+  en:open-beauty-facts: null
+  en:non-food-products: null
+
+petfood:
+  # Open Pet Food Facts: only pet food and pet supplies
+  _default: pet
+
+products:
+  # --- drugstore -------------------------------------------------------------
+  en:health-beauty: drugstore
+  en:personal-care: drugstore
+  en:oral-care: drugstore
+  en:feminine-sanitary-supplies: drugstore
+  en:menstrual-products: drugstore
+  en:health-care: drugstore
+  en:medicine: drugstore
+  en:medical-products: drugstore
+  en:vitamins-supplements: drugstore
+  en:open-beauty-facts: drugstore
+  fr:produits-menstruels: drugstore
+
+  # --- household -------------------------------------------------------------
+  en:household-supplies: household
+  en:household-chemicals: household
+  en:household-cleaning-supplies: household
+  en:household-cleaning-products: household
+  en:detergents: household
+  en:laundry-detergents: household
+  en:household-paper-products: household
+  en:batteries: household
+  en:aaa-batteries: household
+  de:haushalt: household
+  de:haushaltschemie: household
+
+  # --- tobacco ---------------------------------------------------------------
+  en:tobacco-products: tobacco
+  en:cigarettes: tobacco
+
+  # --- non_food --------------------------------------------------------------
+  en:home-garden: non_food
+  en:kitchen-dining: non_food
+  en:cookware-bakeware: non_food
+  en:kitchen-tools-utensils: non_food
+  en:decor: non_food
+  en:plants: non_food
+  en:electronics: non_food
+  en:electronics-accessories: non_food
+  en:power: null
+  en:apparel-accessories: non_food
+  en:clothing: non_food
+  en:underwear-socks: non_food
+  en:toys-games: non_food
+  en:toys: non_food
+  en:games: non_food
+  en:media: non_food
+  en:books: non_food
+  en:software: non_food
+  en:office-supplies: non_food
+  en:general-office-supplies: non_food
+  en:hardware: non_food
+  en:tools: non_food
+  en:sporting-goods: non_food
+  en:outdoor-recreation: non_food
+  en:arts-entertainment: non_food
+  de:spielzeug: non_food
+  de:garten: non_food
+  de:küche: non_food
+
+  # --- pet -------------------------------------------------------------------
+  en:animals-pet-supplies: pet
+  en:pet-supplies: pet
+  en:pet-litter: pet
+
+  # --- free-text categories (de:, en: without taxonomy entry) ---------------
+  de:feuerwerk: non_food
+  de:werkzeug: non_food
+  de:gartenzubehör: non_food
+  de:spielwaren: non_food
+  de:elektrik: non_food
+  de:kartenspiel: non_food
+  de:party-zubehör: non_food
+  de:klebstoff: non_food
+  de:schulbedarf: non_food
+  de:erde: non_food
+  de:blumenerde: non_food
+  de:pflanzenerde: non_food
+  de:heimelektronik: non_food
+  de:festplatte: non_food
+  de:kleidung: non_food
+  de:grillzubehör: non_food
+  en:publications: non_food
+  en:reinigungsmittel: household
+  en:toilettenpapier: household
+  en:spulmittel: household
+  en:waschmittel: household
+  en:disposable-gloves: household
+  de:wc-reiniger: household
+  de:spülmittel: household
+  de:Spülmittel: household
+  de:servietten: household
+  de:putzmittel: household
+  de:Haushalt: household
+  de:reiniger: household
+  de:desinfektionsmittel: household
+  de:zahnbürste: drugstore
+  # food that ended up in Open Products Facts
+  en:beverages: ~drinks
+  en:snacks: ~sweets_snacks
+  en:sweet-snacks: sweets_snacks
+  en:confectioneries: sweets_snacks
+
+  # --- drop ------------------------------------------------------------------
+  en:incorrect-product-type: _drop
+  en:non-open-products-facts: _drop
