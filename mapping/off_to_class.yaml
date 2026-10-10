@@ -1,0 +1,485 @@
+# Mapping of the categories of Open Food/Beauty/Products/Pet Food Facts to the
+# fine classes (mapping/classes.yaml). The app's item group follows from them.
+#
+# Rules (implemented in src/pgm/categories.py):
+# - All ancestors from the taxonomy are added to the categories of a product.
+# - Of the mapped categories, only the most specific count, i.e. those below
+#   which no other mapped category of the product lies.
+# - ~class: weak mapping for broad categories. It only counts if there is no
+#   strong mapping among the most specific categories (like "~" in the app's
+#   dictionary): jam is fruit (~obst) and spread (aufstriche) → aufstriche.
+# - +class: preferred, beats normal and weak entries. Only for cases where two
+#   branches of the taxonomy are equally specific and no common subcategory
+#   exists (plant-based cream lies under plant-based drinks).
+# - If the remaining categories lead to different classes, the product is
+#   dropped (conflict). Resolve with an entry for the more specific category.
+# - null: deliberately ignore the category (cross-cutting like "frozen" or
+#   "organic", or too broad). It counts neither as a match nor as a conflict.
+# - _drop: drop the product entirely (misclassified or unusable entries).
+# - _default: class for products of the source without a mappable category.
+#
+# By content, not by storage form: frozen peas and canned peas are vegetables.
+# Doubtful cases are commented with "?".
+
+food:
+  # --- cross-cutting and too broad ------------------------------------------
+  en:plant-based-foods-and-beverages: null
+  en:plant-based-foods: null
+  en:fermented-foods: null
+  en:frozen-foods: null
+  en:canned-foods: null
+  en:dried-products: null
+  en:dried-products-to-be-rehydrated: null
+  en:fresh-foods: null
+  en:farming-products: null
+  en:groceries: null
+  en:breakfasts: null
+  en:festive-foods: null
+  en:christmas-foods-and-drinks: null
+  en:easter-food: null
+  en:cereals-and-potatoes: null
+  en:spreads: null
+  en:salted-spreads: null
+  en:desserts: null
+  en:vegan-products: null
+  en:products-for-specific-diets: null
+  en:products-without-gluten: null
+  en:specific-products: null
+  en:pasteurised-products: null
+  en:mountain-products: null
+  en:food-additives: null
+  en:appetizers: null
+  en:fruits-and-vegetables-based-foods: null
+  en:vegetable-based-foods-and-beverages: null
+  en:fruit-based-foods-and-beverages: null
+  en:dairies: null
+  en:cocoa-and-its-products: null   # chocolate vs. cocoa powder
+  en:biscuits-and-cakes: null       # cakes vs. biscuits
+  en:breaded-products: null         # breaded meat/fish/cheese via the ingredient
+  en:chips-and-fries: null          # crisps vs. fries
+  en:beverage-preparations: null
+  en:bakery-products: null
+  en:cooking-helpers: null
+
+  # --- obst ------------------------------------------------------------------
+  en:fruits-based-foods: ~obst
+  en:fruits: ~obst
+  en:fresh-fruits: obst
+  en:frozen-fruits: obst
+  en:canned-fruits: obst
+  en:compotes: obst
+  en:fruits-in-syrup: obst
+  de:obst: obst
+
+  # --- gemuese ---------------------------------------------------------------
+  en:vegetables-based-foods: ~gemuese
+  en:vegetables: ~gemuese
+  en:fresh-vegetables: gemuese
+  en:frozen-vegetables: gemuese
+  en:canned-vegetables: ~gemuese      # weak: pickled vegetables → feinkost
+  en:mixed-vegetables: gemuese
+  en:prepared-vegetables: ~gemuese   # weak: pickled gherkins, vegetable dishes
+  en:vegetables-prepared-processed-frozen: gemuese
+  en:spinach-with-cream-sauce: gemuese
+  en:potatoes: gemuese
+  en:mushrooms-and-their-products: gemuese
+  en:culinary-plants: ~gemuese
+  en:herbs: null                    # fresh parsley vs. dried marjoram
+  en:salads: ~gemuese                 # weak: ready-made salads → feinkost
+  en:peas: +gemuese                 # also under legumes and canned-legumes
+  en:sauerkrauts: gemuese
+  en:tomatoes: gemuese
+  en:canned-tomatoes: gemuese
+  en:corn: gemuese                  # corn also lies under cereals
+  en:tomatoes-and-their-products: ~gemuese
+  en:gemusebasierte-lebensmittel: ~gemuese
+
+  # --- brot ------------------------------------------------------------------
+  en:breads: brot
+  en:bread-rolls: brot
+  en:pre-baked-breads: brot
+  en:crispbreads: brot
+  en:flatbreads: brot
+  en:toasts: brot
+
+  # --- kuchen_gebaeck --------------------------------------------------------
+  en:cakes: kuchen_gebaeck
+  en:pastries: kuchen_gebaeck
+  en:viennoiseries: kuchen_gebaeck
+  en:sweet-pastries-and-pies: kuchen_gebaeck
+  en:brioches: kuchen_gebaeck
+  en:pancakes: kuchen_gebaeck
+  en:german-bakery-products: ~kuchen_gebaeck
+
+  # --- milch_sahne -----------------------------------------------------------
+  en:milks: milch_sahne
+  en:milks-liquid-and-powder: milch_sahne
+  en:creams: milch_sahne
+  en:fermented-creams: milch_sahne   # schmand, sour cream, crème fraîche
+  en:fermented-milk-drinks: milch_sahne  # buttermilk, ayran
+  en:kefir: joghurt_quark
+  en:dairy-drinks: milch_sahne
+  en:milchprodukte: ~milch_sahne
+
+  # --- joghurt_quark ---------------------------------------------------------
+  en:fermented-milk-products: joghurt_quark
+  en:fromages-blancs-petit-suisses-and-skyr: joghurt_quark
+  en:dairy-desserts: joghurt_quark
+  en:puddings: joghurt_quark
+  en:rice-puddings: joghurt_quark
+
+  # --- kaese -----------------------------------------------------------------
+  en:cheeses: kaese
+  en:grilling-cheeses: kaese        # also under meat-alternatives
+  en:cheese-spreads: kaese
+  en:kase: kaese
+
+  # --- butter_fette ----------------------------------------------------------
+  en:butters: butter_fette
+  en:margarines: butter_fette
+  en:spreadable-fats: butter_fette
+  en:milkfat: butter_fette
+
+  # --- eier ------------------------------------------------------------------
+  en:eggs: eier
+
+  # --- pflanzendrinks and pflanzl_milchalternativen --------------------------
+  en:plant-based-milk-alternatives: pflanzendrinks
+  en:milk-substitutes: pflanzendrinks
+  en:dairy-substitutes: ~pflanzl_milchalternativen
+  en:non-dairy-yogurts: pflanzl_milchalternativen
+  en:cheese-substitutes: pflanzl_milchalternativen
+  en:cheese-spreads-substitutes: pflanzl_milchalternativen
+  en:plant-based-creams: +pflanzl_milchalternativen  # oat cuisine lies under plant-based drinks
+
+  # --- fleisch ---------------------------------------------------------------
+  en:meats-and-their-products: ~fleisch
+  en:meats: ~fleisch
+  en:poultries: ~fleisch            # weak: poultry sausage → wurst_aufschnitt
+  en:meat-preparations: ~fleisch
+
+  # --- wurst_aufschnitt ------------------------------------------------------
+  en:prepared-meats: wurst_aufschnitt
+  en:sausages: wurst_aufschnitt
+  en:hams: wurst_aufschnitt
+  en:meat-spreads: wurst_aufschnitt
+  en:pate: wurst_aufschnitt
+
+  # --- fisch -----------------------------------------------------------------
+  en:seafood: fisch
+  en:fishes-and-their-products: ~fisch
+  en:canned-fishes: fisch
+  en:breaded-fish: fisch
+  en:caviars: fisch
+
+  # --- tofu_fleischalternativen ----------------------------------------------
+  en:meat-alternatives: tofu_fleischalternativen
+  en:meat-analogues: tofu_fleischalternativen
+  xx:tofu: tofu_fleischalternativen
+  en:tempeh: tofu_fleischalternativen
+  en:seitan: tofu_fleischalternativen
+  en:falafels: feinkost             # lies under meat-alternatives, but replaces nothing
+
+  # --- nudeln_reis -----------------------------------------------------------
+  en:cereals-and-their-products: null  # too broad: semolina, pasta, rice …
+  en:pastas: ~nudeln_reis           # weak: filled pasta, pasta dishes → fertiggerichte
+  en:rices: ~nudeln_reis            # weak: rice dishes → fertiggerichte
+  en:cereal-grains: nudeln_reis
+
+  # --- muesli_flocken --------------------------------------------------------
+  en:breakfast-cereals: muesli_flocken
+  en:mueslis: muesli_flocken
+  en:flakes: muesli_flocken
+
+  # --- backzutaten -----------------------------------------------------------
+  en:flours: backzutaten
+  en:sugars: backzutaten
+  en:sweeteners: backzutaten
+  en:pastry-helpers: backzutaten
+  en:baking-mixes: backzutaten
+  en:dessert-mixes: backzutaten
+  en:cake-mixes: +backzutaten       # also lies under cakes
+  en:baker-s-yeast: backzutaten
+  en:yeast: backzutaten
+  en:baking-powder-or-raising-agent: backzutaten
+  en:bicarbonates-of-soda: backzutaten
+  en:food-colorings: backzutaten
+  en:gelatin: backzutaten
+  en:bread-crumbs: backzutaten
+
+  # --- oel_essig -------------------------------------------------------------
+  en:fats: ~oel_essig
+  en:vegetable-fats: ~oel_essig
+  en:vegetable-oils: oel_essig
+  en:vinegars: oel_essig
+
+  # --- gewuerze_saucen -------------------------------------------------------
+  en:condiments: null               # too broad: capers, vanilla, fruit
+  en:sauces: gewuerze_saucen
+  en:tomato-pastes: gewuerze_saucen
+  en:strained-tomatoes: gewuerze_saucen
+  en:broths: gewuerze_saucen
+  en:spices: gewuerze_saucen
+  en:herbs-and-spices: gewuerze_saucen
+  en:salts: gewuerze_saucen
+  en:pestos: gewuerze_saucen
+  en:ajvar: gewuerze_saucen
+  en:gewurze: gewuerze_saucen
+  en:gewurzmittel: gewuerze_saucen
+
+  # --- huelsenfruechte -------------------------------------------------------
+  en:legumes-and-their-products: ~huelsenfruechte   # weak: soy drink, tofu, peanuts
+  en:legumes: ~huelsenfruechte
+  en:legume-seeds: huelsenfruechte
+  en:pulses: huelsenfruechte
+  en:peanuts: nuesse_trockenobst
+  en:canned-legumes: huelsenfruechte
+
+  # --- nuesse_trockenobst ----------------------------------------------------
+  en:nuts-and-their-products: ~nuesse_trockenobst
+  en:nuts: ~nuesse_trockenobst
+  en:seeds: ~nuesse_trockenobst
+  en:dried-fruits: nuesse_trockenobst
+
+  # --- aufstriche ------------------------------------------------------------
+  en:sweet-spreads: aufstriche
+  en:jams: aufstriche
+  en:fruit-and-vegetable-preserves: ~aufstriche
+  en:bee-products: aufstriche
+  en:honeys: aufstriche
+  en:nut-butters: aufstriche
+  en:chocolate-spreads: aufstriche
+  en:cocoa-and-hazelnuts-spreads: aufstriche
+  en:plant-based-spreads: aufstriche
+  en:susse-brotaufstriche: aufstriche
+  de:fruchtaufstrich: aufstriche
+
+  # --- sportnahrung ----------------------------------------------------------
+  en:bodybuilding-supplements: sportnahrung
+  en:protein-powders: sportnahrung
+  en:protein-bars: sportnahrung
+
+  # --- fertiggerichte --------------------------------------------------------
+  en:meals: fertiggerichte
+  en:pizzas-pies-and-quiches: fertiggerichte
+  en:soups: fertiggerichte
+  en:sandwiches: fertiggerichte
+  en:stuffed-pastas: fertiggerichte
+  en:gnocchi: fertiggerichte
+  en:dried-meals: fertiggerichte
+  en:frozen-ready-made-meals: fertiggerichte
+
+  # --- kartoffelprodukte -----------------------------------------------------
+  en:frozen-fried-potatoes: kartoffelprodukte
+  en:potato-preparations: kartoffelprodukte
+  en:rostis: kartoffelprodukte
+  en:mashed-potatoes: kartoffelprodukte
+  en:instant-mashed-potatoes: kartoffelprodukte
+
+  # --- feinkost --------------------------------------------------------------
+  en:prepared-salads: feinkost
+  en:potato-salads: feinkost
+  en:egg-salads: feinkost
+  de:fleischsalat: feinkost
+  en:dips: feinkost
+  en:hummus: feinkost
+  en:pickles: feinkost
+  en:olives: feinkost
+  en:lentil-spreads: aufstriche
+
+  # --- suesswaren ------------------------------------------------------------
+  en:snacks: null
+  en:sweet-snacks: null
+  en:confectioneries: suesswaren
+  en:chocolates: suesswaren
+  en:candies: suesswaren
+  en:chewing-gums: suesswaren
+  en:marzipan: suesswaren
+  en:advent-calendars: suesswaren
+  en:susser-snack: ~suesswaren
+
+  # --- kekse_riegel ----------------------------------------------------------
+  en:biscuits-and-crackers: ~kekse_riegel
+  en:biscuits: kekse_riegel
+  en:gingerbreads: kekse_riegel
+  en:waffles: kekse_riegel
+  en:bars: ~kekse_riegel            # weak: chocolate bars → suesswaren, protein bars
+  en:cereal-bars: kekse_riegel
+
+  # --- knabbereien -----------------------------------------------------------
+  en:salty-snacks: ~knabbereien
+  en:crisps: +knabbereien
+  en:crackers-appetizers: knabbereien
+  en:popcorn: knabbereien
+  en:puffed-cereal-cakes: knabbereien
+  en:salted-nuts: knabbereien
+  en:roasted-nuts: knabbereien
+
+  # --- eis -------------------------------------------------------------------
+  en:frozen-desserts: eis
+  en:ice-creams-and-sorbets: eis
+
+  # --- wasser ----------------------------------------------------------------
+  en:waters: wasser
+  en:flavored-waters: wasser
+
+  # --- saft_softdrinks -------------------------------------------------------
+  en:beverages: null                # too broad: coffee, wine, punch, apple sauce …
+  en:beverages-and-beverages-preparations: null
+  en:plant-based-beverages: ~saft_softdrinks
+  en:fruit-based-beverages: saft_softdrinks
+  en:juices-and-nectars: saft_softdrinks
+  en:carbonated-drinks: ~saft_softdrinks   # weak: sparkling water → wasser
+  en:sodas: saft_softdrinks
+  en:sweetened-beverages: ~saft_softdrinks
+  en:artificially-sweetened-beverages: ~saft_softdrinks
+  en:tea-based-beverages: ~saft_softdrinks
+  en:iced-teas: saft_softdrinks
+  en:energy-drinks: saft_softdrinks
+  en:syrups: saft_softdrinks
+  en:smoothies: saft_softdrinks
+  en:getranke: null
+  en:getranke-und-getrankezubereitungen: null
+
+  # --- kaffee_tee_kakao ------------------------------------------------------
+  en:hot-beverages: kaffee_tee_kakao
+  en:coffees: kaffee_tee_kakao
+  en:coffee-drinks: kaffee_tee_kakao
+  en:teas: kaffee_tee_kakao
+  en:herbal-teas: kaffee_tee_kakao
+  en:cocoa-and-chocolate-powders: kaffee_tee_kakao
+
+  # --- bier_alkoholfrei ------------------------------------------------------
+  en:non-alcoholic-beers: bier_alkoholfrei
+
+  # --- alcohol ---------------------------------------------------------------
+  en:alcoholic-beverages: null      # too broad: wine, sparkling wine, shandy, spirits
+  en:beers: ~bier                   # weak: non-alcoholic beer → bier_alkoholfrei
+  en:wines: wein_sekt
+  en:ciders: wein_sekt
+  en:distilled-beverages: spirituosen
+  en:liqueurs: spirituosen
+  en:premixed-alcoholic-beverages: spirituosen
+
+  # --- other -----------------------------------------------------------------
+  en:dietary-supplements: gesundheit
+  en:nahrungserganzungsmittel: gesundheit
+  en:baby-foods: baby
+  en:baby-milks: baby
+  de:babykost-nach-dem-4-monat: baby
+
+beauty:
+  # Open Beauty Facts contains almost only cosmetics and personal care.
+  _default: koerperpflege
+  en:non-open-products-facts: null
+  en:open-beauty-facts: null
+  en:non-food-products: null
+
+petfood:
+  # Open Pet Food Facts: only pet food and pet supplies
+  _default: tierbedarf
+
+products:
+  # --- drugstore -------------------------------------------------------------
+  en:health-beauty: ~koerperpflege
+  en:personal-care: koerperpflege
+  en:oral-care: koerperpflege
+  en:feminine-sanitary-supplies: koerperpflege
+  en:menstrual-products: koerperpflege
+  en:open-beauty-facts: koerperpflege
+  fr:produits-menstruels: koerperpflege
+  de:zahnbürste: koerperpflege
+  en:health-care: gesundheit
+  en:medicine: gesundheit
+  en:medical-products: gesundheit
+  en:vitamins-supplements: gesundheit
+
+  # --- household -------------------------------------------------------------
+  en:household-supplies: ~haushaltswaren
+  en:household-chemicals: putz_waschmittel
+  en:household-cleaning-supplies: putz_waschmittel
+  en:household-cleaning-products: putz_waschmittel
+  en:detergents: putz_waschmittel
+  en:laundry-detergents: putz_waschmittel
+  en:household-paper-products: haushaltswaren
+  en:batteries: haushaltswaren
+  en:aaa-batteries: haushaltswaren
+  en:disposable-gloves: haushaltswaren
+  de:haushalt: ~haushaltswaren
+  de:Haushalt: ~haushaltswaren
+  de:haushaltschemie: putz_waschmittel
+  en:reinigungsmittel: putz_waschmittel
+  en:spulmittel: putz_waschmittel
+  en:waschmittel: putz_waschmittel
+  de:wc-reiniger: putz_waschmittel
+  de:spülmittel: putz_waschmittel
+  de:Spülmittel: putz_waschmittel
+  de:putzmittel: putz_waschmittel
+  de:reiniger: putz_waschmittel
+  de:desinfektionsmittel: putz_waschmittel
+  en:toilettenpapier: haushaltswaren
+  de:servietten: haushaltswaren
+
+  # --- tobacco and pet -------------------------------------------------------
+  en:tobacco-products: tabak
+  en:cigarettes: tabak
+  en:animals-pet-supplies: tierbedarf
+  en:pet-supplies: tierbedarf
+  en:pet-litter: tierbedarf
+
+  # --- non_food --------------------------------------------------------------
+  en:home-garden: ~non_food
+  en:kitchen-dining: non_food
+  en:cookware-bakeware: non_food
+  en:kitchen-tools-utensils: non_food
+  en:decor: non_food
+  en:plants: non_food
+  en:electronics: non_food
+  en:electronics-accessories: non_food
+  en:power: null
+  en:apparel-accessories: non_food
+  en:clothing: non_food
+  en:underwear-socks: non_food
+  en:toys-games: non_food
+  en:toys: non_food
+  en:games: non_food
+  en:media: non_food
+  en:books: non_food
+  en:publications: non_food
+  en:software: non_food
+  en:office-supplies: non_food
+  en:general-office-supplies: non_food
+  en:hardware: non_food
+  en:tools: non_food
+  en:sporting-goods: non_food
+  en:outdoor-recreation: non_food
+  en:arts-entertainment: non_food
+  de:spielzeug: non_food
+  de:garten: non_food
+  de:küche: non_food
+  de:feuerwerk: non_food
+  de:werkzeug: non_food
+  de:gartenzubehör: non_food
+  de:spielwaren: non_food
+  de:elektrik: non_food
+  de:kartenspiel: non_food
+  de:party-zubehör: non_food
+  de:klebstoff: non_food
+  de:schulbedarf: non_food
+  de:erde: non_food
+  de:blumenerde: non_food
+  de:pflanzenerde: non_food
+  de:heimelektronik: non_food
+  de:festplatte: non_food
+  de:kleidung: non_food
+  de:grillzubehör: non_food
+
+  # --- food that ended up in Open Products Facts ----------------------------
+  en:beverages: ~saft_softdrinks
+  en:snacks: ~knabbereien
+  en:sweet-snacks: ~suesswaren
+  en:confectioneries: suesswaren
+
+  # --- drop ------------------------------------------------------------------
+  en:incorrect-product-type: _drop
+  en:non-open-products-facts: _drop

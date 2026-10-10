@@ -1,0 +1,247 @@
+# Fine classes of the model and their item group in the app (mapping/groups.yaml).
+#
+# The model learns these classes; the app shows the group. The mapping class →
+# group can be changed without retraining. A class can later become a group of
+# its own in the app.
+#
+# Criteria for a class:
+# - What is in it really belongs together.
+# - A human recognizes the class from the line on the receipt. Hence no classes
+#   by storage form (canned, frozen): "ERBSEN 400G" does not reveal that.
+# - By content, like the app's ItemGroup: frozen peas and canned peas are vegetables.
+# - Enough examples in Open Food Facts (rule of thumb: a few hundred), otherwise
+#   merge with a neighbouring class.
+#
+# examples: hand-written lines in receipt style, as a guide when labelling the
+# test data (not taken from the test data).
+
+classes:
+  # --- produce ---------------------------------------------------------------
+  - id: obst
+    group: produce
+    name: Fruit
+    note: fresh, frozen or canned; dried fruit see nuesse_trockenobst
+    examples: [BANANEN, "ÄPFEL ELSTAR", TK HIMBEEREN, ANANAS STUECKE]
+  - id: gemuese
+    group: produce
+    name: Vegetables, potatoes, salad, herbs, mushrooms
+    note: also canned, frozen and creamed spinach; pickled see feinkost
+    examples: [ZWIEBELN 1KG, TOMATEN RISPE, JA ERBSEN, RAHMSPINAT, CHAMPIGNONS]
+
+  # --- bakery ----------------------------------------------------------------
+  - id: brot
+    group: bakery
+    name: Bread, rolls, toast
+    note: also bake-at-home rolls, crispbread, wraps
+    examples: [ROGGENMISCHBROT, BRÖTCHEN, BUTTERTOAST, LAUGENBREZEL]
+  - id: kuchen_gebaeck
+    group: bakery
+    name: Cakes and pastries
+    note: cakes, pastries, croissants, stollen; packaged biscuits see kekse_riegel
+    examples: [APFELSTRUDEL, CROISSANT, MARMORKUCHEN, BERLINER]
+
+  # --- dairy -----------------------------------------------------------------
+  - id: milch_sahne
+    group: dairy
+    name: Milk, cream, buttermilk
+    examples: [H-MILCH 3,5%, SCHLAGSAHNE, BUTTERMILCH, KAFFEESAHNE]
+  - id: joghurt_quark
+    group: dairy
+    name: Yoghurt, quark, pudding
+    note: also skyr, kefir, rice pudding, dairy desserts
+    examples: [NATURJOGHURT, MAGERQUARK, SKYR VANILLE, SCHOKOPUDDING]
+  - id: kaese
+    group: dairy
+    name: Cheese
+    note: also cream cheese, grilling cheese, feta
+    examples: [GOUDA JUNG, MOZZARELLA, FRISCHKAESE NATUR, HALLOUMI]
+  - id: butter_fette
+    group: dairy
+    name: Butter, margarine
+    examples: [DEUTSCHE MARKENBUTTER, RAMA, BUTTERSCHMALZ]
+  - id: eier
+    group: dairy
+    name: Eggs
+    examples: [EIER M 10ER, FREILAND EIER]
+  - id: pflanzendrinks
+    group: dairy  # ? or drinks, or a group of its own in the app
+    name: Plant-based drinks
+    examples: [HAFER DRINK, OATLY BARISTA, SOJA DRINK, MANDELDRINK]
+  - id: pflanzl_milchalternativen
+    group: dairy
+    name: Plant-based alternatives to yoghurt, cheese, cream
+    examples: [SOJAJOGHURT, VEGANER REIBEKAESE, HAFER CUISINE]
+
+  # --- meat_fish -------------------------------------------------------------
+  - id: fleisch
+    group: meat_fish
+    name: Meat and poultry
+    note: fresh, minced meat, schnitzel, also breaded
+    examples: [HAEHNCHENBRUSTFILET, HACKFLEISCH GEM., SCHWEINESCHNITZEL]
+  - id: wurst_aufschnitt
+    group: meat_fish
+    name: Sausage, ham, cold cuts
+    examples: [SALAMI, KOCHSCHINKEN, WIENER WUERSTCHEN, LEBERWURST]
+  - id: fisch
+    group: meat_fish
+    name: Fish and seafood
+    note: also canned fish, smoked salmon, fish fingers
+    examples: [LACHSFILET, THUNFISCH NATUR, FISCHSTAEBCHEN, GARNELEN]
+  - id: tofu_fleischalternativen
+    group: meat_fish  # ? or a group of its own in the app
+    name: Tofu and meat alternatives
+    note: tofu, tempeh, seitan, veggie burgers, vegan sausage; falafel see feinkost
+    examples: [TOFU NATUR, VEGGIE BURGER, RUEGENW. VEG. SALAMI, SEITAN]
+
+  # --- pantry ----------------------------------------------------------------
+  - id: nudeln_reis
+    group: pantry
+    name: Pasta, rice, grains
+    note: also couscous, bulgur, quinoa; filled pasta see fertiggerichte
+    examples: [SPAGHETTI, BASMATI REIS, COUSCOUS, FUSILLI]
+  - id: muesli_flocken
+    group: pantry
+    name: Muesli, flakes, cereals
+    examples: [KNUSPERMUESLI, HAFERFLOCKEN, CORNFLAKES, PORRIDGE]
+  - id: backzutaten
+    group: pantry
+    name: Flour, sugar, baking ingredients
+    note: also yeast, baking powder, baking mixes, gelatine
+    examples: [WEIZENMEHL 405, ZUCKER 1KG, TROCKENHEFE, BACKPULVER]
+  - id: oel_essig
+    group: pantry
+    name: Oil and vinegar
+    examples: [OLIVENOEL, SONNENBLUMENOEL, BALSAMICO]
+  - id: gewuerze_saucen
+    group: pantry
+    name: Spices, sauces, stock
+    note: also ketchup, mustard, mayonnaise, pesto, tomato paste, passata
+    examples: [KETCHUP, SENF MITTELSCHARF, GEMUESEBRUEHE, PESTO GENOVESE]
+  - id: huelsenfruechte
+    group: pantry
+    name: Pulses
+    note: lentils, chickpeas, beans (dried or canned); green peas see gemuese
+    examples: [ROTE LINSEN, KICHERERBSEN, KIDNEYBOHNEN]
+  - id: nuesse_trockenobst
+    group: pantry
+    name: Nuts, seeds, dried fruit
+    note: for baking and cooking; salted and roasted see knabbereien
+    examples: [MANDELN GEMAHLEN, WALNUSSKERNE, LEINSAMEN, ROSINEN]
+  - id: aufstriche
+    group: pantry
+    name: Spreads
+    note: jam, honey, nut butter, nut nougat, vegan spreads
+    examples: [ERDBEER KONFITUERE, BLUETENHONIG, NUTELLA, ERDNUSSBUTTER]
+  - id: sportnahrung
+    group: pantry  # ? or drugstore
+    name: Sports nutrition
+    note: protein powder, protein bars, shakes; supplements see gesundheit
+    examples: [WHEY PROTEIN, PROTEINRIEGEL, ISO DRINK PULVER]
+
+  # --- ready_meals -----------------------------------------------------------
+  - id: fertiggerichte
+    group: ready_meals
+    name: Ready meals, pizza, soups
+    note: also frozen meals, packet meals, tortellini, gnocchi, burgers, sandwiches
+    examples: [STEINOFENPIZZA, TORTELLINI, LASAGNE, TOMATENSUPPE]
+  - id: kartoffelprodukte
+    group: ready_meals
+    name: Fries, croquettes, rösti, mash
+    examples: [POMMES FRITES, KROKETTEN, KARTOFFELPUEREE]
+  - id: feinkost
+    group: ready_meals
+    name: Delicatessen, salads, dips
+    note: hummus, falafel, potato salad, tzatziki, antipasti, olives, pickled gherkins
+    examples: [HUMMUS NATUR, KARTOFFELSALAT, FALAFEL, GEWUERZGURKEN]
+
+  # --- sweets_snacks ---------------------------------------------------------
+  - id: suesswaren
+    group: sweets_snacks
+    name: Chocolate and confectionery
+    note: sweets, fruit gums, pralines, marzipan, chewing gum
+    examples: [VOLLMILCHSCHOKOLADE, GUMMIBAERCHEN, RITTER SPORT, KAUGUMMI]
+  - id: kekse_riegel
+    group: sweets_snacks
+    name: Biscuits, wafers, bars
+    note: packaged; also gingerbread, muesli bars
+    examples: [BUTTERKEKSE, LEIBNIZ, MUESLIRIEGEL, WAFFELN]
+  - id: knabbereien
+    group: sweets_snacks
+    name: Crisps and savoury snacks
+    note: crisps, puffs, pretzel sticks, popcorn, crackers, salted nuts, rice cakes
+    examples: [CHIPS PAPRIKA, ERDNUSSFLIPS, SALZSTANGEN, CASHEW GESALZEN]
+  - id: eis
+    group: sweets_snacks
+    name: Ice cream
+    examples: [VANILLE EIS, MAGNUM, EISKONFEKT]
+
+  # --- drinks ----------------------------------------------------------------
+  - id: wasser
+    group: drinks
+    name: Water
+    examples: [MINERALWASSER, STILLES WASSER, GEROLSTEINER]
+  - id: saft_softdrinks
+    group: drinks
+    name: Juice, spritzers, lemonade, cola
+    note: also iced tea, energy drinks, syrup, smoothies, isotonic drinks
+    examples: [ORANGENSAFT, APFELSCHORLE, COCA COLA, RED BULL]
+  - id: kaffee_tee_kakao
+    group: drinks
+    name: Coffee, tea, cocoa
+    examples: [KAFFEE GEMAHLEN, ESPRESSO BOHNEN, PFEFFERMINZTEE, KAKAO]
+  - id: bier_alkoholfrei
+    group: drinks
+    name: Non-alcoholic beer
+    examples: [KROMBACHER ALKOHOLFREI, RADLER 0,0]
+
+  # --- alcohol ---------------------------------------------------------------
+  - id: bier
+    group: alcohol
+    name: Beer
+    examples: [PILS 0,5L, WEISSBIER, RADLER]
+  - id: wein_sekt
+    group: alcohol
+    name: Wine and sparkling wine
+    examples: [RIESLING TROCKEN, ROTWEIN, PROSECCO]
+  - id: spirituosen
+    group: alcohol
+    name: Spirits and mixed drinks
+    examples: [WODKA, LIKOER, APEROL]
+
+  # --- other groups ----------------------------------------------------------
+  - id: tabak
+    group: tobacco
+    name: Tobacco
+    examples: [MARLBORO, DREHTABAK, HEETS]
+  - id: koerperpflege
+    group: drugstore
+    name: Personal care and cosmetics
+    note: also dental care, shaving, feminine hygiene, make-up
+    examples: [DUSCHGEL, SHAMPOO, ZAHNPASTA, DEO ROLL ON]
+  - id: gesundheit
+    group: drugstore
+    name: Health
+    note: medicines, plasters, vitamins, supplements
+    examples: [IBUPROFEN, PFLASTER, MAGNESIUM TABL., VITAMIN D]
+  - id: putz_waschmittel
+    group: household
+    name: Cleaning agents, dish soap and detergent
+    examples: [SPUELMITTEL, VOLLWASCHMITTEL, SPUELMASCH.TABS, WC REINIGER]
+  - id: haushaltswaren
+    group: household
+    name: Household paper and supplies
+    note: toilet paper, kitchen roll, foils, bags, batteries, candles
+    examples: [TOILETTENPAPIER, KUECHENROLLE, GEFRIERBEUTEL, BATTERIEN AA]
+  - id: tierbedarf
+    group: pet
+    name: Pet food and pet supplies
+    examples: [KATZENFUTTER, HUNDESNACK, KATZENSTREU]
+  - id: baby
+    group: baby
+    name: Baby food and care
+    examples: [HIPP MENUE, PRE MILCH, WINDELN GR.4]
+  - id: non_food
+    group: non_food
+    name: Non-Food
+    note: electronics, toys, books, clothing, garden, tools, office
+    examples: [BLUMENERDE, SOCKEN, USB KABEL, ZEITSCHRIFT]

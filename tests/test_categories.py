@@ -30,20 +30,20 @@ def taxonomy(tmp_path):
 
 def test_most_specific_wins(taxonomy):
     m = CategoryMapper({"en:food": "pantry", "en:fruits": "produce"}, taxonomy, GROUPS)
-    assert m.resolve(["en:apples"]).group == "produce"
+    assert m.resolve(["en:apples"]).label == "produce"
 
 
 def test_conflict_between_branches(taxonomy):
     m = CategoryMapper({"en:fruits": "produce", "en:jams": "pantry"}, taxonomy, GROUPS)
     res = m.resolve(["en:apple-jams"])
-    assert (res.group, res.reason) == (None, "conflict")
+    assert (res.label, res.reason) == (None, "conflict")
     assert res.tags == ("en:fruits", "en:jams")
 
 
 def test_weak_yields_to_strong(taxonomy):
     m = CategoryMapper({"en:fruits": "~produce", "en:jams": "pantry"}, taxonomy, GROUPS)
-    assert m.resolve(["en:apple-jams"]).group == "pantry"
-    assert m.resolve(["en:apples"]).group == "produce"
+    assert m.resolve(["en:apple-jams"]).label == "pantry"
+    assert m.resolve(["en:apples"]).label == "produce"
 
 
 def test_specific_entry_resolves_conflict(taxonomy):
@@ -52,7 +52,7 @@ def test_specific_entry_resolves_conflict(taxonomy):
         taxonomy,
         GROUPS,
     )
-    assert m.resolve(["en:apple-jams"]).group == "pantry"
+    assert m.resolve(["en:apple-jams"]).label == "pantry"
 
 
 def test_null_ignored_drop_and_default(taxonomy):
@@ -66,5 +66,10 @@ def test_null_ignored_drop_and_default(taxonomy):
 
 
 def test_unknown_group_rejected(taxonomy):
-    with pytest.raises(ValueError, match="unknown groups"):
+    with pytest.raises(ValueError, match="unknown classes"):
         CategoryMapper({"en:food": "lebensmittel"}, taxonomy, GROUPS)
+
+
+def test_strong_wins_over_normal(taxonomy):
+    m = CategoryMapper({"en:fruits": "produce", "en:jams": "+pantry"}, taxonomy, GROUPS)
+    assert m.resolve(["en:apple-jams"]).label == "pantry"
