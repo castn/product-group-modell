@@ -4,7 +4,8 @@ Calls the Kotlin baseline (kotlin/baseline, builds the code from kotlin/app-snap
     cd kotlin && ./gradlew :baseline:installDist
 
 Evaluated on
-- the real receipts (data/eval/item-groups.csv: receipt;name;group)
+- the real receipts (data/eval/item-groups.csv: receipt;name;class, the group
+  follows from mapping/classes.yaml; older files with a group column work too)
 - the German product names from Open Food Facts etc. with the group from the
   category mapping (data/interim/de_labeled.parquet). These names are cleanly
   written, not in receipt style; so the value rather shows how much vocabulary
@@ -21,6 +22,8 @@ from collections import Counter
 from pathlib import Path
 
 import polars as pl
+
+from pgm.categories import class_groups
 
 ROOT = Path(__file__).resolve().parent.parent
 BIN = (
@@ -87,7 +90,11 @@ def main() -> None:
         (name, MERCHANTS.get(receipt, receipt))
         for receipt, name in zip(receipts["receipt"], receipts["name"], strict=True)
     ]
-    expected = receipts["group"].to_list()
+    if "class" in receipts.columns:
+        groups = class_groups()
+        expected = [groups[c] for c in receipts["class"]]
+    else:
+        expected = receipts["group"].to_list()
     result = classify(rows)
     dictionary_only = [g if s == "DICTIONARY" else None for g, s in result]
     with_merchant = [g for g, _ in result]
