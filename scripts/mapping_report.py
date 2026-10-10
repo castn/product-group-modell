@@ -1,11 +1,11 @@
-"""Assigns item groups to the German products and writes a report.
+"""Assigns classes to the German products and writes a report.
 
 Input:   data/interim/de.parquet (scripts/extract_de.py)
-Output:  data/interim/de_labeled.parquet (columns group, reason, decisive_tags)
+Output:  data/interim/de_labeled.parquet (columns label, group, reason, decisive_tags)
          reports/mapping.md
 
 The report is the work list for mapping/off_to_group.yaml: most frequent
-unmapped categories and most frequent conflicts.
+unmapped categories, most frequent conflicts, and entries that have no effect.
 
 Usage:  uv run scripts/mapping_report.py
 """
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import polars as pl
 
-from pgm.categories import load_mappers, model_groups
+from pgm.categories import class_groups, load_mappers, model_groups
 
 ROOT = Path(__file__).resolve().parent.parent
 IN = ROOT / "data" / "interim" / "de.parquet"
@@ -23,7 +23,7 @@ OUT = ROOT / "data" / "interim" / "de_labeled.parquet"
 REPORT = ROOT / "reports" / "mapping.md"
 
 TOP = 60
-MIN_PER_GROUP = 500
+MIN_PER_CLASS = 300
 
 
 def most_specific(tags: list[str], mapper) -> list[str]:
@@ -37,13 +37,14 @@ def main() -> None:
     mappers = load_mappers(ROOT / "data" / "raw")
     df = pl.read_parquet(IN)
 
-    groups, reasons, decisive = [], [], []
+    classes = class_groups()
+    labels, reasons, decisive = [], [], []
     unmapped: dict[str, Counter] = {s: Counter() for s in mappers}
     conflicts: Counter = Counter()
     for source, tags in zip(df["source"], df["categories_tags"], strict=True):
         mapper = mappers[source]
         res = mapper.resolve(tags)
-        groups.append(res.group)
+        labels.append(res.label)
         reasons.append(res.reason)
         decisive.append(list(res.tags))
         if res.reason == "unmapped":
@@ -52,7 +53,8 @@ def main() -> None:
             conflicts[(source, res.tags)] += 1
 
     df = df.with_columns(
-        pl.Series("group", groups, dtype=pl.String),
+        pl.Series("label", labels, dtype=pl.String),
+        pl.Series("group", [classes.get(x) for x in labels], dtype=pl.String),
         pl.Series("reason", reasons),
         pl.Series("decisive_tags", decisive, dtype=pl.List(pl.String)),
     )
@@ -81,25 +83,32 @@ def main() -> None:
             f"| {pct('unmapped')} | {pct('conflict')} | {pct('drop')} |"
         )
 
-    lines += ["", "## Products per item group", ""]
+    lines += ["", "## Products per class", ""]
     lines += [
-        "| Group | " + " | ".join(mappers) + " | total |",
-        "|---|" + "---:|" * (len(mappers) + 1),
+        "| Class | Group | " + " | ".join(mappers) + " | total |",
+        "|---|---|" + "---:|" * (len(mappers) + 1),
     ]
-    by_group = Counter(zip(df["group"], df["source"], strict=True))
-    for group in model_groups():
-        per = [by_group[(group, s)] for s in mappers]
+    by_label = Counter(zip(df["label"], df["source"], strict=True))
+    for label, group in classes.items():
+        per = [by_label[(label, s)] for s in mappers]
         total = sum(per)
-        flag = " ⚠" if total < MIN_PER_GROUP else ""
+        flag = " ⚠" if total < MIN_PER_CLASS else ""
         lines.append(
-            f"| {group}{flag} | "
+            f"| {label}{flag} | {group} | "
             + " | ".join(f"{n:,}" for n in per)
             + f" | {total:,} |"
         )
-    lines.append(f"\n⚠ = fewer than {MIN_PER_GROUP} examples")
+    lines.append(f"\n⚠ = fewer than {MIN_PER_CLASS} examples")
+
+    lines += ["", "## Products per app item group", ""]
+    lines += ["| Group | Classes | Products |", "|---|---:|---:|"]
+    by_group = Counter(df["group"])
+    for group in model_groups():
+        n_classes = sum(g == group for g in classes.values())
+        lines.append(f"| {group} | {n_classes} | {by_group[group]:,} |")
 
     lines += ["", f"## Most frequent conflicts (top {TOP})", ""]
-    lines += ["| Source | Products | Categories → groups |", "|---|---:|---|"]
+    lines += ["| Source | Products | Categories → classes |", "|---|---:|---|"]
     for (source, tags), n in conflicts.most_common(TOP):
         mapping = mappers[source].mapping
         detail = ", ".join(f"`{t}` → {mapping[t]}" for t in tags)
@@ -114,6 +123,25 @@ def main() -> None:
         lines.append("Counted is the most specific category of each unmapped product.")
         lines += ["", "| Products | Category |", "|---:|---|"]
         lines += [f"| {n:,} | `{tag}` |" for tag, n in counter.most_common(TOP)]
+
+    lines += ["", "## Entries without effect", ""]
+    lines.append(
+        "Categories from the mapping that are neither in the taxonomy nor used by any"
+    )
+    lines.append("product (typos or outdated).")
+    lines.append("")
+    seen = {s: set() for s in mappers}
+    for source, tags in zip(df["source"], df["categories_tags"], strict=True):
+        seen[source].update(tags)
+    for source, mapper in mappers.items():
+        dead = [
+            t
+            for t in mapper.mapping
+            if t not in seen[source]
+            and not mapper.taxonomy.ancestors(t)
+            and t not in mapper.taxonomy.known
+        ]
+        lines += [f"- {source}: `{t}`" for t in dead]
 
     REPORT.parent.mkdir(exist_ok=True)
     REPORT.write_text("\n".join(lines) + "\n")

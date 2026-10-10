@@ -1,6 +1,7 @@
-"""Assigns an item group to products based on their categories.
+"""Assigns a fine class to products based on their categories.
 
-Rules and mapping: mapping/off_to_group.yaml.
+Rules and mapping: mapping/off_to_class.yaml. The app's item group follows
+from the class (mapping/classes.yaml).
 """
 
 import json
@@ -16,17 +17,32 @@ MAPPING = ROOT / "mapping"
 DROP = "_drop"
 DEFAULT = "_default"
 WEAK = "~"
+STRONG = "+"
 
 
 def model_groups() -> list[str]:
-    """Target labels of the model, in the order of groups.yaml."""
+    """Item groups of the app that the model covers, in the order of groups.yaml."""
     groups = yaml.safe_load((MAPPING / "groups.yaml").read_text())["groups"]
     return [g["id"] for g in groups if g["model"]]
 
 
+def class_groups() -> dict[str, str]:
+    """Classes of the model → item group of the app, in the order of classes.yaml."""
+    classes = yaml.safe_load((MAPPING / "classes.yaml").read_text())["classes"]
+    groups = set(model_groups())
+    result = {}
+    for c in classes:
+        if c["group"] not in groups:
+            raise ValueError(f"class {c['id']}: unknown group {c['group']}")
+        if c["id"] in result:
+            raise ValueError(f"class {c['id']} duplicated")
+        result[c["id"]] = c["group"]
+    return result
+
+
 @dataclass(frozen=True)
 class Resolution:
-    group: str | None
+    label: str | None
     # "mapped", "default", "unmapped", "conflict" or "drop"
     reason: str
     # the decisive categories (on conflict, all involved)
@@ -39,6 +55,7 @@ class Taxonomy:
             tag: tuple(entry.get("parents", []))
             for tag, entry in json.loads(path.read_text()).items()
         }
+        self.known = frozenset(self._parents)
         self.ancestors = cache(self._ancestors)
 
     def _ancestors(self, tag: str) -> frozenset[str]:
@@ -54,19 +71,28 @@ class CategoryMapper:
         self,
         mapping: dict[str, str | None],
         taxonomy: Taxonomy,
-        groups: list[str] | None = None,
+        labels: list[str] | None = None,
     ):
-        valid = set(groups if groups is not None else model_groups()) | {DROP}
+        valid = set(labels if labels is not None else class_groups()) | {DROP}
         unknown = {
-            g for g in mapping.values() if g is not None and g.lstrip(WEAK) not in valid
+            g
+            for g in mapping.values()
+            if g is not None and g.lstrip(WEAK + STRONG) not in valid
         }
         if unknown:
-            raise ValueError(f"unknown groups in the mapping: {sorted(unknown)}")
+            raise ValueError(f"unknown classes in the mapping: {sorted(unknown)}")
         self.default = mapping.get(DEFAULT)
         entries = {t: g for t, g in mapping.items() if t != DEFAULT}
-        # group without "~"; weak mappings only count when no strong one is present
-        self.mapping = {t: g.lstrip(WEAK) if g else g for t, g in entries.items()}
-        self.weak = {t for t, g in entries.items() if g and g.startswith(WEAK)}
+        # class without prefix; rank: "+" preferred 2, normal 1, "~" weak 0
+        self.mapping = {
+            t: g.lstrip(WEAK + STRONG) if g else g for t, g in entries.items()
+        }
+        self.rank = {
+            t: 2 if g.startswith(STRONG) else 0 if g.startswith(WEAK) else 1
+            for t, g in entries.items()
+            if g
+        }
+        self.weak = {t for t, r in self.rank.items() if r == 0}
         self.taxonomy = taxonomy
 
     def resolve(self, tags: list[str]) -> Resolution:
@@ -85,20 +111,20 @@ class CategoryMapper:
         for tag in mapped:
             below |= self.taxonomy.ancestors(tag)
         leaves = sorted(t for t in mapped if t not in below)
-        strong = [t for t in leaves if t not in self.weak]
-        if strong:
-            leaves = strong
-        groups = {mapped[t] for t in leaves}
-        if len(groups) == 1:
-            return Resolution(groups.pop(), "mapped", tuple(leaves))
+        # only the most specific categories with the highest rank count
+        top = max(self.rank[t] for t in leaves)
+        leaves = [t for t in leaves if self.rank[t] == top]
+        labels = {mapped[t] for t in leaves}
+        if len(labels) == 1:
+            return Resolution(labels.pop(), "mapped", tuple(leaves))
         return Resolution(None, "conflict", tuple(leaves))
 
 
 def load_mappers(
     raw_dir: Path, taxonomy_date: str | None = None
 ) -> dict[str, CategoryMapper]:
-    """One CategoryMapper per source (food, beauty, products) with the newest taxonomy."""
-    mapping = yaml.safe_load((MAPPING / "off_to_group.yaml").read_text())
+    """One CategoryMapper per source with the newest taxonomy."""
+    mapping = yaml.safe_load((MAPPING / "off_to_class.yaml").read_text())
     mappers = {}
     for source, entries in mapping.items():
         pattern = f"tax-{source}-{taxonomy_date or '*'}.json"
