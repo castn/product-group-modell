@@ -1,0 +1,26 @@
+# Item groups of the app (ItemGroup in org.totschnig.myexpenses.next.receipts).
+# The id is stored in the app's database and must never change.
+#
+# model: true  → target label of the model
+# model: false → not predicted by the model:
+#   deposit: rule in the app (bottle deposit, empties)
+#   other:   only chosen by the user, for items that fit no group
+
+groups:
+  - {id: produce,       name: Fruit & vegetables,          model: true}
+  - {id: bakery,        name: Bakery,                      model: true}
+  - {id: dairy,         name: Dairy & eggs,                model: true}
+  - {id: meat_fish,     name: Meat & fish,                 model: true}
+  - {id: pantry,        name: Pantry,                      model: true}
+  - {id: ready_meals,   name: Ready meals & delicatessen,  model: true}
+  - {id: sweets_snacks, name: Sweets & snacks,             model: true}
+  - {id: drinks,        name: Drinks (non-alcoholic),      model: true}
+  - {id: alcohol,       name: Alcohol,                     model: true}
+  - {id: tobacco,       name: Tobacco,                     model: true}
+  - {id: drugstore,     name: Drugstore,                   model: true}
+  - {id: household,     name: Household,                   model: true}
+  - {id: pet,           name: Pet supplies,                model: true}
+  - {id: baby,          name: Baby,                        model: true}
+  - {id: non_food,      name: Non-Food,                    model: true}
+  - {id: deposit,       name: Deposit,                     model: false}
+  - {id: other,         name: Other,                       model: false}
