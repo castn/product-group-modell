@@ -1,0 +1,30 @@
+# Retail chains for the store feature (__store=<CHAIN>).
+#
+# The name from the app (merchant of the receipt or payee) and the stores_tags
+# from Open Food Facts are normalized (pgm.normalize) and checked against the
+# aliases: a word of the name equals the alias, or the name starts with the
+# alias. Unknown stores give no feature.
+#
+# Only chains with their own assortment and private labels; the feature is meant
+# to help the model place "JA!" (Rewe) or "BALEA" (dm).
+
+stores:
+  REWE: [REWE]
+  EDEKA: [EDEKA, MARKTKAUF, E CENTER, E-CENTER]
+  NETTO: [NETTO]
+  KAUFLAND: [KAUFLAND]
+  LIDL: [LIDL]
+  ALDI: [ALDI, ALDI NORD, ALDI SUED, ALDI-SUED, ALDI-NORD, HOFER]
+  PENNY: [PENNY]
+  NORMA: [NORMA]
+  GLOBUS: [GLOBUS]
+  REAL: [REAL]
+  ALNATURA: [ALNATURA]
+  DENNS: [DENNS, DENN S]
+  DM: [DM, DM-DROGERIE, DM DROGERIE]
+  ROSSMANN: [ROSSMANN]
+  MUELLER: [MUELLER DROGERIE, MUELLER HANDELS]  # not just MUELLER: common surname
+  MIGROS: [MIGROS]
+  COOP: [COOP]
+  SPAR: [SPAR, EUROSPAR, INTERSPAR]
+  BILLA: [BILLA]

@@ -1,0 +1,47 @@
+# Private labels as they appear on receipts (maintained by hand, not from Open Food Facts).
+# chain	brand	classes (comma-separated, empty = all food classes)
+REWE	JA!	
+REWE	REWE BIO	
+REWE	REWE BESTE WAHL	
+REWE	REWE FEINE WELT	
+EDEKA	G&G	
+EDEKA	GUT&GUENSTIG	
+EDEKA	EDEKA BIO	
+EDEKA	EDEKA	
+NETTO	G&G	
+NETTO	GUT&GUENSTIG	
+KAUFLAND	K-CLASSIC	
+KAUFLAND	K-BIO	
+KAUFLAND	K-FAV	
+LIDL	MILBONA	milch_sahne,joghurt_quark,kaese,butter_fette
+LIDL	CHOCEUR	suesswaren
+LIDL	SOLEVITA	saft_softdrinks
+LIDL	CRUSTI CROC	knabbereien
+LIDL	BIOTREND	
+LIDL	SNACK DAY	knabbereien,suesswaren,kekse_riegel
+LIDL	CIEN	koerperpflege
+LIDL	W5	putz_waschmittel,haushaltswaren
+ALDI	MILSANI	milch_sahne,joghurt_quark,kaese,butter_fette
+ALDI	GUT BIO	
+ALDI	MOSER ROTH	suesswaren
+ALDI	RIO D'ORO	saft_softdrinks
+ALDI	LACURA	koerperpflege
+ALDI	TANDIL	putz_waschmittel
+PENNY	PENNY	
+PENNY	NATURGUT	
+DM	DMBIO	
+DM	DM BIO	
+DM	BALEA	koerperpflege
+DM	ALVERDE	koerperpflege
+DM	SUNDANCE	koerperpflege
+DM	EBELIN	koerperpflege
+DM	MIVOLIS	gesundheit
+DM	SPORTNESS	sportnahrung
+DM	DENKMIT	putz_waschmittel,haushaltswaren
+DM	BABYLOVE	baby
+DM	DEIN BESTES	tierbedarf
+ROSSMANN	ISANA	koerperpflege
+ROSSMANN	ALOUETTE	haushaltswaren
+ROSSMANN	ENERBIO	
+ROSSMANN	DOMOL	putz_waschmittel
+ROSSMANN	BABYDREAM	baby
