@@ -8,29 +8,33 @@ Check: both implementations must match the golden values under `tests/golden/` e
 
 ## Input and output
 
+Reference: [`kotlin/reference/src/main/kotlin/pgm/ProductGroupModel.kt`](../kotlin/reference/src/main/kotlin/pgm/ProductGroupModel.kt).
+
 ```kotlin
 data class GroupPrediction(
+    val classId: String,     // fine class of the model, e.g. "pflanzendrinks" (mapping/classes.yaml)
     val groupId: String,     // ItemGroup.id of the app, e.g. "dairy" (mapping/groups.yaml)
-    val confidence: Float,   // 0..1, calibrated
+    val confidence: Float,   // 0..1, probability of the best class
     val level: Level,
 )
 
 enum class Level { SURE, SUGGESTION }
 
-interface ProductGroupClassifier {
-    val modelVersion: String
-    /** null if the confidence is below the suggestion threshold or the name has no features. */
+class ProductGroupModel {
+    val version: String
+    /** null if the confidence is below the suggestion threshold or the name has no features */
     fun classify(itemName: String, store: String? = null): GroupPrediction?
-    /** The k most likely groups, sorted in descending order. */
+    /** The k most likely classes, descending */
     fun topK(itemName: String, store: String? = null, k: Int = 3): List<Pair<String, Float>>
+    companion object { fun load(data: ByteArray): ProductGroupModel }
 }
 ```
 
 - `itemName`: the item name of a receipt line, as the app's parser delivers it. Price, tax marker and item number are already removed.
-- `store`: name of the chain (e.g. `"Rewe"`), or `null` if unknown. It is normalized like the item name.
-- The model only predicts the groups with `model: true` in `mapping/groups.yaml`. `deposit` stays a rule in the app, `other` is only chosen by the user.
-- Uncertain cases return `null`, and the next source (dictionary) takes over.
-- In the app, the model sits in `ItemGroupClassifier` between `WORDS` and `DICTIONARY` (its own `ItemGroupSource`, e.g. `MODEL`).
+- `store`: name of the merchant as the app knows it (e.g. `"REWE Markt GmbH"`), or `null`. The model detects the chain from it (section Store).
+- The model predicts fine classes; the app's group for each class is stored in the model file. `deposit` stays a rule in the app, `other` is only chosen by the user.
+- Uncertain cases return `null`, and the next source takes over.
+- Order in `ItemGroupClassifier`: for now dictionary before model (`DICTIONARY`, then `MODEL`, then `MERCHANT`); final after evaluation with new test data.
 
 ## Normalization
 
@@ -72,8 +76,54 @@ In Kotlin, compute with `UInt` or with `Long` masked by `and 0xFFFFFFFFL`. The b
 
 The parameters (`buckets`, `minn`, `maxn`, `bigrams`, `store`) are stored in the model file and not fixed in the code.
 
+## Store
+
+The model file contains the chains and their aliases from `mapping/stores.yaml` (aliases normalized, `-` as a space, longest first, alphabetical for equal length).
+
+1. `text = normalize(store with "-" replaced by " ")`
+2. The first alias that is a word of `text`, equals `text`, or that `text` starts with (`text.startsWith(alias + " ")`) determines the chain.
+3. Otherwise no chain, hence no store feature.
+
+The chain (e.g. `REWE`) goes in as the feature `__store=REWE`.
+
 ## Computation
 
-*To be fixed together with the export format (step 9).* Planned:
-average the feature vectors, multiply by the output matrix, add the bias, divide by the temperature `T`, softmax.
-Everything in `Float32`.
+Reference in Python: `pgm.export.probabilities`; in Kotlin `ProductGroupModel.probabilities`. Everything in `Float32`, in this order:
+
+1. `ids` = feature IDs (section Features) with the chain as the store. Empty → `null`.
+2. `h[d] = Σ_i (embedding[id_i][d] × scale[id_i])` over the features in their order, then `h[d] /= number of features`. `embedding` is `int8`, the product is formed as `Float32`.
+3. `z[k] = (bias[k] + Σ_d output[k][d] × h[d]) / T`
+4. `p[k] = exp(z[k] − max z) / Σ exp(z − max z)`
+5. Best class = largest `p`, on a tie the lower class number. `SURE` from `t_sure`, `SUGGESTION` from `t_suggest`, otherwise `null`.
+
+Differences between Python and Kotlin due to summation order are below `1e-5`; the golden values check the probabilities with this tolerance, and the order of the best classes when they are more than `1e-4` apart.
+
+## File format
+
+Implementation: [`src/pgm/export.py`](../src/pgm/export.py) (write, read) and `ProductGroupModel.load` (Kotlin). All numbers little endian; `str8`/`str16` = length as `u8`/`u16`, then UTF-8.
+
+| Field | Type | Content |
+|---|---|---|
+| magic | 4 bytes | `PGM1` |
+| format | u16 | Version of the format, currently 1 |
+| version | str16 | Model version, e.g. `2026.10-de-1` |
+| created | i64 | Unix time in seconds |
+| buckets | u32 | Number of feature rows |
+| dim | u16 | Length of a feature vector |
+| minn, maxn | u8, u8 | Length of the character n-grams |
+| flags | u16 | Bit 0: word pairs, bit 1: store feature |
+| temperature | f32 | Temperature `T` |
+| t_sure, t_suggest | f32, f32 | Thresholds for `SURE` and `SUGGESTION` |
+| n_labels | u16 | Number of classes |
+| labels | n_labels × (str8, str8) | Class and app group |
+| n_chains | u16 | Number of chains |
+| chains | n_chains × str8 | Chain names (normalized) |
+| n_aliases | u16 | Number of aliases |
+| aliases | n_aliases × (str8, u16) | Alias (normalized) and index of the chain |
+| scales | buckets × f32 | Scale per feature row |
+| embedding | buckets × dim × i8 | Feature vectors, value = q × scale |
+| output | n_labels × dim × f32 | Output matrix, row by row per class |
+| bias | n_labels × f32 | Bias per class |
+| crc32 | u32 | CRC-32 (like `java.util.zip.CRC32`) over all preceding bytes |
+
+Size with 2^16 buckets, dim 24 and 46 classes: 1.84 MB.
