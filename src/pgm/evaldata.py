@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 DICTIONARY_BIN = (
     ROOT / "kotlin" / "baseline" / "build" / "install" / "baseline" / "bin" / "baseline"
 )
-RECEIPTS = ROOT / "data" / "eval" / "item-groups.csv"
+RECEIPTS = ROOT / "data" / "eval" / "receipts.csv"
 
 # Merchants of the receipts whose photo is cropped to the items (as in the app's test)
 MERCHANTS = {
@@ -32,12 +32,30 @@ class Receipts:
     merchant: list[str]
     label: list[str | None]  # class, None for old files with group only
     group: list[str]
+    # receipts that the app's dictionary was written with an eye on
+    seen: list[bool]
+
+    def subset(self, mask: list[bool]) -> "Receipts":
+        def pick(values):
+            return [v for v, m in zip(values, mask, strict=True) if m]
+
+        return Receipts(*(pick(getattr(self, f)) for f in self.__dataclass_fields__))
 
 
 def load_receipts(path: Path = RECEIPTS) -> Receipts:
-    """Test data receipt;name;class (or older receipt;name;group), without discount lines."""
-    df = pl.read_csv(path, separator=";").filter(~pl.col("name").is_in(DISCOUNTS))
+    """Real receipts without discount lines and without unclear class ("?").
+
+    Format receipt;merchant;name;amount;class;dictionary_seen (data/eval/receipts.csv).
+    Older files receipt;name;class or receipt;name;group work too.
+    """
+    df = pl.read_csv(path, separator=";", infer_schema_length=0)
+    if "amount" in df.columns:
+        df = df.filter(
+            pl.col("amount").is_null() | (pl.col("amount").cast(pl.Int64) >= 0)
+        )
+    df = df.filter(~pl.col("name").is_in(DISCOUNTS))
     if "class" in df.columns:
+        df = df.filter(pl.col("class") != "?")
         groups = class_groups()
         labels = df["class"].to_list()
         group = [groups[c] for c in labels]
@@ -45,13 +63,15 @@ def load_receipts(path: Path = RECEIPTS) -> Receipts:
         labels = [None] * df.height
         group = df["group"].to_list()
     receipts = df["receipt"].to_list()
-    return Receipts(
-        receipt=receipts,
-        name=df["name"].to_list(),
-        merchant=[MERCHANTS.get(r, r) for r in receipts],
-        label=labels,
-        group=group,
-    )
+    if "merchant" in df.columns:
+        merchants = df["merchant"].to_list()
+    else:
+        merchants = [MERCHANTS.get(r, r) for r in receipts]
+    if "dictionary_seen" in df.columns:
+        seen = [v == "ja" for v in df["dictionary_seen"]]
+    else:
+        seen = [True] * df.height
+    return Receipts(receipts, df["name"].to_list(), merchants, labels, group, seen)
 
 
 def dictionary(
