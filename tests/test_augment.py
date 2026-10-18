@@ -6,7 +6,8 @@ from pgm.stores import chain_of
 
 OFF = AugmentConfig(
     brand=0, private_label=0, filler=0, abbrev=0, truncate_word=0, drop_vowels=0,
-    join_dots=0, quantity=0, truncate_line=0, ocr_char=0, ocr_space=0,
+    join_dots=0, quantity=0, price_tail=0, truncate_line=0, ocr_char=0,
+    ocr_space=0,
 )  # fmt: skip
 
 
