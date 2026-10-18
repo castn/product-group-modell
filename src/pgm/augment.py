@@ -63,6 +63,7 @@ class AugmentConfig:
     drop_vowels: float = 0.08  # per word: drop vowels
     join_dots: float = 0.1  # join words with a dot ("GRUENL.SCH.")
     quantity: float = 0.35  # append quantity
+    price_tail: float = 0.2  # append remnant of weight, count and price
     truncate_line: float = 0.5  # cut to line width
     ocr_char: float = 0.012  # per character: confusion
     ocr_space: float = 0.08  # insert or delete a space
@@ -122,6 +123,33 @@ def receipt_quantity(quantity: str | None, rng: random.Random) -> str:
     )
     unit = rng.choice(UNITS)
     return f"{number}{unit}"
+
+
+def _price(rng: random.Random) -> str:
+    euros = rng.choice([0, 0, 1, 1, 2, 3, 4, 5, 9])
+    cents = f"{rng.randrange(100):02d}"
+    sep = rng.choice([",", ",", ", ", "."])  # text recognition: "0, 99"
+    return f"{euros}{sep}{cents}"
+
+
+def price_tail(rng: random.Random) -> str:
+    """Remnants the receipt parser leaves on the name (weight, count, price)."""
+    n = rng.randint(2, 6)
+    weight = f"0,{rng.randint(100, 999)}"
+    patterns = [
+        f"{weight} kg x {_price(rng)} EUR/kg",
+        f"{weight} kg x {_price(rng)} EUR/kg X",
+        f"{_price(rng)} € x {n}",
+        f"{_price(rng)} € X {n}",
+        f"{n} x €{_price(rng)} €",
+        f"1,00 Stück x {_price(rng)}",
+        f"{n} Stk x {_price(rng)}",
+        f"{_price(rng)} AW",
+        f"{_price(rng)} A",
+        "EUR",
+        f"{rng.randint(100000, 999999)} 1 {_price(rng)}",
+    ]
+    return rng.choice(patterns)
 
 
 def _shorten(word: str, rng: random.Random, cfg: AugmentConfig) -> str:
@@ -205,4 +233,6 @@ def augment(
         text = f"{text} {receipt_quantity(quantity, rng)}"
     if rng.random() < cfg.truncate_line:
         text = text[: rng.randint(14, 30)].rstrip()
+    if rng.random() < cfg.price_tail:
+        text = f"{text} {price_tail(rng)}"
     return _ocr(text, rng, cfg)
