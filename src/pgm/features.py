@@ -30,11 +30,29 @@ class FeatureConfig:
     store: bool = True
 
 
+# Units, price and tax markers that the receipt parser leaves on the name
+# ("BANANE 0,750 KG X 1,79 EUR KG", "BREZE 4 X 0,39"). They say nothing about the
+# item group but dilute the mean of the features.
+SKIP_TOKENS = frozenset(
+    {"X", "KG", "G", "L", "ML", "EUR", "ST", "STK", "STUECK", "AW", "A", "B"}
+)
+_NUMERIC = frozenset("0123456789,.%-")
+
+
+def tokens(name: str) -> list[str]:
+    """Words of the normalized name without pure numbers and without SKIP_TOKENS."""
+    return [
+        t
+        for t in normalize(name).split()
+        if t not in SKIP_TOKENS and not set(t) <= _NUMERIC
+    ]
+
+
 def feature_strings(name: str, store: str | None, cfg: FeatureConfig) -> list[str]:
     """Features in a fixed order. Duplicates are not removed (like fastText)."""
-    tokens = normalize(name).split()
+    tokens_ = tokens(name)
     features: list[str] = []
-    for token in tokens:
+    for token in tokens_:
         word = f"<{token}>"
         features.append(word)
         for n in range(cfg.minn, cfg.maxn + 1):
@@ -43,8 +61,8 @@ def feature_strings(name: str, store: str | None, cfg: FeatureConfig) -> list[st
                 if gram != word:
                     features.append(gram)
     if cfg.bigrams:
-        features.extend(f"{a} {b}" for a, b in pairwise(tokens))
-    if cfg.store and store and tokens:
+        features.extend(f"{a} {b}" for a, b in pairwise(tokens_))
+    if cfg.store and store and tokens_:
         store_norm = normalize(store)
         if store_norm:
             features.append(f"__store={store_norm}")
