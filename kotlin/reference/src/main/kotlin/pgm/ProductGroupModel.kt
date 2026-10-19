@@ -103,7 +103,7 @@ class ProductGroupModel private constructor(
     }
 
     companion object {
-        private const val FORMAT = 1
+        private const val FORMAT = 2
 
         fun load(data: ByteArray): ProductGroupModel {
             require(data.size > 8) { "file too short" }

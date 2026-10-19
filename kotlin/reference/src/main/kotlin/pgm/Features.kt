@@ -26,9 +26,22 @@ object Features {
         return h
     }
 
+    /**
+     * Units, price and tax markers that the receipt parser leaves on the name
+     * ("BANANE 0,750 KG X 1,79 EUR KG"); they only dilute the mean of the features.
+     */
+    private val SKIP_TOKENS = setOf("X", "KG", "G", "L", "ML", "EUR", "ST", "STK", "STUECK", "AW", "A", "B")
+    private const val NUMERIC = "0123456789,.%-"
+
+    /** Words of the normalized name without pure numbers and without [SKIP_TOKENS] */
+    fun tokens(name: String): List<String> =
+        Normalize.normalize(name).split(' ').filter { token ->
+            token.isNotEmpty() && token !in SKIP_TOKENS && !token.all { it in NUMERIC }
+        }
+
     /** Duplicates are not removed (like fastText) */
     fun strings(name: String, store: String?, cfg: FeatureConfig): List<String> {
-        val tokens = Normalize.normalize(name).split(' ').filter { it.isNotEmpty() }
+        val tokens = tokens(name)
         val features = mutableListOf<String>()
         for (token in tokens) {
             val word = "<$token>"

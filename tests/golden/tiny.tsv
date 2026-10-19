@@ -1,5 +1,5 @@
 # model tiny-1; columns: name, store (empty = null), chain, margin, k × class=probability (empty if no features)
-Bio Vollmilch 3,5%			0.00633055	gemuese=0.19783175,milch_sahne=0.19150120,wein_sekt=0.18083589
+Bio Vollmilch 3,5%			0.01032494	milch_sahne=0.19768493,gemuese=0.18735999,kaese=0.17677045
 JA! H-Milch 1L			0.00470258	kaese=0.18253669,gemuese=0.17783411,putz_waschmittel=0.17772661
 K-Classic Spülmittel			0.01410809	milch_sahne=0.19380325,gemuese=0.17969516,kaese=0.17215900
 Weißbrot			0.00409745	gemuese=0.20871803,kaese=0.20462058,milch_sahne=0.17730266
@@ -15,13 +15,13 @@ Tab\tund\nZeile			0.01242851	gemuese=0.19822590,obst=0.18579739,kaese=0.16845813
 Cola 0,33l (Pfand)			0.00294368	gemuese=0.18357903,obst=0.18063535,kaese=0.17812285
 ＢＩＯ ｍｉｌｃｈ			0.05193426	putz_waschmittel=0.23196772,kaese=0.18003346,obst=0.16562524
 ﬁletspitzen			0.05316003	wein_sekt=0.23550542,kaese=0.18234539,obst=0.17219479
-Käse 1/2 Laib			0.01309973	kaese=0.20231147,gemuese=0.18921174,milch_sahne=0.17114176
+Käse 1/2 Laib			0.02442026	kaese=0.22040299,gemuese=0.19598272,milch_sahne=0.17501356
 Joghurt 🍓			0.00037910	kaese=0.19428360,wein_sekt=0.19390450,putz_waschmittel=0.18840168
 Молоко				
 				
-1,99 €			0.01854675	putz_waschmittel=0.22590786,obst=0.20736112,kaese=0.20389053
+1,99 €				
 ı İ			0.03215075	kaese=0.31939390,gemuese=0.28724316,putz_waschmittel=0.12447020
-JA! H-MILCH 1,5% 1L	REWE Markt GmbH	REWE	0.00264300	gemuese=0.18381411,kaese=0.18117110,wein_sekt=0.17614201
+JA! H-MILCH 1,5% 1L	REWE Markt GmbH	REWE	0.00579190	kaese=0.18527573,gemuese=0.17948383,putz_waschmittel=0.17357723
 K-CLASSIC TOIL.PAP. 8X	Kaufland	KAUFLAND	0.01696557	kaese=0.19311765,putz_waschmittel=0.17615208,milch_sahne=0.17406882
 dmBio Chiasamen 200g	dm-drogerie markt	DM	0.00523554	kaese=0.18616757,putz_waschmittel=0.18093203,gemuese=0.17128831
 Balea Duschgel Kokos 300m1	dm	DM	0.01417767	gemuese=0.19116856,kaese=0.17699090,putz_waschmittel=0.17013185

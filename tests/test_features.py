@@ -46,3 +46,13 @@ def test_empty_name_has_no_features():
 def test_ids_in_range():
     cfg = FeatureConfig(buckets=1000)
     assert all(0 <= i < 1000 for i in feature_ids("Bio Vollmilch 3,5% 1L", "Lidl", cfg))
+
+
+def test_numbers_units_and_price_markers_are_skipped():
+    cfg = FeatureConfig(minn=2, maxn=3, bigrams=True, store=False)
+    assert feature_strings(
+        "BANANE 0, 750 kg x 1,79 EUR/kg", None, cfg
+    ) == feature_strings("Banane", None, cfg)
+    # Quantities with the unit in one word stay ("500G"), as do words with digits ("M10")
+    assert "<500G>" in feature_strings("Mehl 500g", None, cfg)
+    assert feature_strings("4 x 0,39 EUR", "REWE", cfg) == []

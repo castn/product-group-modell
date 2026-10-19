@@ -34,7 +34,7 @@ class ProductGroupModel {
 - `store`: name of the merchant as the app knows it (e.g. `"REWE Markt GmbH"`), or `null`. The model detects the chain from it (section Store).
 - The model predicts fine classes; the app's group for each class is stored in the model file. `deposit` stays a rule in the app, `other` is only chosen by the user.
 - Uncertain cases return `null`, and the next source takes over.
-- Order in `ItemGroupClassifier`: for now dictionary before model (`DICTIONARY`, then `MODEL`, then `MERCHANT`); final after evaluation with new test data.
+- Order in `ItemGroupClassifier`: `RULE`, `PRODUCT`, `WORDS`, then **`MODEL` from `t_suggest`**, then `DICTIONARY`, then `MERCHANT`. On real receipts the model does better before the dictionary than after it (README, step 8).
 
 ## Normalization
 
@@ -58,7 +58,9 @@ Kotlin notes: `java.text.Normalizer.normalize(s, Normalizer.Form.NFKC)`, accents
 
 Implementation: [`src/pgm/features.py`](../src/pgm/features.py).
 
-The normalized name is split into tokens at spaces. Features in this order:
+The normalized name is split into tokens at spaces. Left out are tokens that consist only of `0–9 , . % -` (numbers, prices, weights), and the tokens `X KG G L ML EUR ST STK STUECK AW A B` (units, price and tax markers that the receipt parser leaves on the name, e.g. "BANANE 0, 750 kg x 1,79 EUR/kg"). Quantities with the unit in one word like `500G` stay.
+
+Features in this order:
 
 1. For each token `T`:
    - the word `<T>`
@@ -105,7 +107,7 @@ Implementation: [`src/pgm/export.py`](../src/pgm/export.py) (write, read) and `P
 | Field | Type | Content |
 |---|---|---|
 | magic | 4 bytes | `PGM1` |
-| format | u16 | Version of the format, currently 1 |
+| format | u16 | Version of the format **and of the rules for normalization and features**, currently 2. If a rule changes, the version goes up, and old models are rejected instead of being computed wrongly. (1 → 2: numbers and units no longer become features.) |
 | version | str16 | Model version, e.g. `2026.10-de-1` |
 | created | i64 | Unix time in seconds |
 | buckets | u32 | Number of feature rows |

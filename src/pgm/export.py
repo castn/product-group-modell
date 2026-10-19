@@ -3,7 +3,7 @@
 The format is described in docs/interface.md. All numbers little endian.
 
     magic          4 B    "PGM1"
-    format         u16    version of the format (1)
+    format         u16    version of the format and of the feature rules (2)
     version        str16  model version, e.g. "2026.10-de-1"
     created        i64    Unix time in seconds
     buckets        u32
@@ -41,7 +41,7 @@ from pgm.features import FeatureConfig, feature_ids
 from pgm.stores import lookup
 
 MAGIC = b"PGM1"
-FORMAT = 1
+FORMAT = 2
 
 
 @dataclass
