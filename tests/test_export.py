@@ -1,13 +1,13 @@
 import numpy as np
 
-from pgm.export import probabilities, quantize, read, write
+from pgm.export import file_name, model_version, probabilities, quantize, read, write
 from pgm.golden import GOLDEN, golden_inputs, model_tsv, tiny_model
 
 
 def test_roundtrip(tmp_path):
     m = tiny_model()
-    write(m, tmp_path / "m.pgm")
-    r = read(tmp_path / "m.pgm")
+    write(m, tmp_path / "m.bin")
+    r = read(tmp_path / "m.bin")
     assert r.labels == m.labels and r.groups == m.groups
     assert r.aliases == m.aliases and r.chains == m.chains
     assert np.array_equal(r.embedding, m.embedding)
@@ -16,7 +16,7 @@ def test_roundtrip(tmp_path):
 
 
 def test_crc_detects_corruption(tmp_path):
-    path = tmp_path / "m.pgm"
+    path = tmp_path / "m.bin"
     write(tiny_model(), path)
     data = bytearray(path.read_bytes())
     data[100] ^= 1
@@ -43,8 +43,8 @@ def test_probabilities_sum_to_one_or_none():
 
 
 def test_tiny_golden_is_current():
-    assert (GOLDEN / "tiny.pgm").read_bytes() == _bytes(tiny_model())
-    expected = model_tsv(read(GOLDEN / "tiny.pgm"), golden_inputs())
+    assert (GOLDEN / "tiny.bin").read_bytes() == _bytes(tiny_model())
+    expected = model_tsv(read(GOLDEN / "tiny.bin"), golden_inputs())
     assert (GOLDEN / "tiny.tsv").read_text(encoding="utf-8") == expected
 
 
@@ -53,5 +53,25 @@ def _bytes(m) -> bytes:
     from pathlib import Path
 
     with tempfile.TemporaryDirectory() as d:
-        write(m, Path(d) / "m.pgm")
-        return (Path(d) / "m.pgm").read_bytes()
+        write(m, Path(d) / "m.bin")
+        return (Path(d) / "m.bin").read_bytes()
+
+
+def test_version_and_file_name():
+    v = model_version("de-DE", "2026.10.1")
+    assert v == "de-DE-2026.10.1"
+    assert file_name(v) == "pgm-f2-de-DE-2026.10.1.bin"
+    assert model_version("de-AT", "2026.11.2-rc1") == "de-AT-2026.11.2-rc1"
+    for market, release in [
+        ("de", "2026.10.1"),
+        ("DE-de", "2026.10.1"),
+        ("de-DE", "2026.10-1"),
+        ("de-DE", "2026.13.1"),
+        ("de-DE", "2026.10.0"),
+    ]:
+        try:
+            model_version(market, release)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"{market} {release} accepted")
