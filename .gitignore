@@ -4,7 +4,8 @@ data/**
 !data/**/MANIFEST.json
 
 dist/
-reports/*.parquet
+reports/*
+!reports/.gitkeep
 .venv/
 __pycache__/
 *.egg-info/
