@@ -59,6 +59,12 @@ Counter-argument: whether trained models are Produced Works is not conclusively 
 4. `data/` and `dist/*.golden.tsv` are not published.
 5. Every published model version must be reproducible from the state of the repository: manifest with revision and checksums (`data/raw/MANIFEST.json`), model version in the file and as a Git tag.
 
+## License of this repository
+
+Code, scripts and our own lists (`src/`, `scripts/`, `kotlin/`, `mapping/`, `augment/`, `tests/`, `docs/`) are under **GPL-3.0-or-later** ([LICENSE](../LICENSE)), like MyExpenses. So the Kotlin files can be taken into the app without further questions.
+
+The **model files** (`pgm-*.bin`) are deliberately not under the GPL. On distribution, the GPL requires the preferred form for making modifications; for trained weights that would strictly speaking be the training data, which is not published (`data/`). For the model files the classification above applies: Produced Work, notice per §4.3, method disclosed via this repository per §4.6.
+
 ## Notice text for the app
 
 In the About dialog (step 11), together with the model version. The store description does not need it, but it would not hurt.
@@ -73,7 +79,8 @@ In the About dialog (step 11), together with the model version. The store descri
 
 ## Before the first release
 
-- [ ] Make the repository public, with a license for code and own lists (e.g. the same as the app).
+- [x] License for code and own lists: GPL-3.0-or-later like the app (section "License of this repository").
+- [ ] Make the repository public.
 - [ ] Model version as a Git tag; in the tag text the revision of the raw data from the manifest.
 - [ ] Notice text in the About dialog with link to the repository and model version.
 - [ ] Do not take `dist/*.golden.tsv` into the app.
