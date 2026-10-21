@@ -65,11 +65,11 @@ In the About dialog (step 11), together with the model version. The store descri
 
 **German:**
 
-> Die Erkennung der Warengruppen auf Kassenzetteln nutzt ein Modell, das mit Daten von Open Food Facts, Open Beauty Facts, Open Products Facts und Open Pet Food Facts erstellt wurde (https://openfoodfacts.org). Diese Daten stehen unter der Open Database License (ODbL). Wie das Modell aus den Daten erzeugt wird: ‹Link zum Repository›. Modellversion ‹2026.10-de-1›.
+> Die Erkennung der Warengruppen auf Kassenzetteln nutzt ein Modell, das mit Daten von Open Food Facts, Open Beauty Facts, Open Products Facts und Open Pet Food Facts erstellt wurde (https://openfoodfacts.org). Diese Daten stehen unter der Open Database License (ODbL). Wie das Modell aus den Daten erzeugt wird: ‹Link zum Repository›. Modellversion ‹de-DE-2026.10.1›.
 
 **English:**
 
-> Item group recognition on receipts uses a model built with data from Open Food Facts, Open Beauty Facts, Open Products Facts and Open Pet Food Facts (https://openfoodfacts.org), made available under the Open Database License (ODbL). How the model is built from the data: ‹link to repository›. Model version ‹2026.10-de-1›.
+> Item group recognition on receipts uses a model built with data from Open Food Facts, Open Beauty Facts, Open Products Facts and Open Pet Food Facts (https://openfoodfacts.org), made available under the Open Database License (ODbL). How the model is built from the data: ‹link to repository›. Model version ‹de-DE-2026.10.1›.
 
 ## Before the first release
 
