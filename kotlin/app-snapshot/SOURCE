@@ -1,0 +1,20 @@
+Copy of the item group classifier from MyExpenses, basis for the baseline
+(kotlin/baseline, scripts/baseline.py, scripts/evaluate.py).
+Deliberately a fixed state: the numbers in the README apply to exactly this one.
+To update: copy the files from the app by hand, adjust the details below,
+and commit the snapshot and the new numbers together.
+
+Repository:  TODO (development fork of https://github.com/mtotschnig/MyExpenses)
+Branch:      TODO
+Commit:      TODO
+Copied:      2026-10-03
+Package:     org.totschnig.myexpenses.next.receipts
+
+Files:
+  ItemDirectory.kt
+  ItemGroup.kt
+  ItemGroupClassifier.kt
+  ItemGroupClassifierTest.kt   (not built here, see kotlin/baseline)
+
+License: GPL-3.0-or-later, like MyExpenses. Copyright Michael Totschnig and
+contributors.

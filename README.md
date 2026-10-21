@@ -134,7 +134,7 @@ Code, scripts and our own lists in this repository (`src/`, `scripts/`, `kotlin/
 ├── kotlin/
 │   ├── reference/   Kotlin reference (goes into the app as is) + golden value tests
 │   ├── baseline/    the app's dictionary as a command-line tool for baseline.py
-│   └── app-snapshot/  copy of the classifier from the app (not in the repo)
+│   └── app-snapshot/  fixed copy of the classifier from the app, origin in SOURCE
 ├── data/            raw, intermediate, training and test data (only MANIFEST.json in the repo)
 ├── models/          trained models (not in the repo)
 ├── reports/         generated reports (not in the repo)
@@ -146,6 +146,7 @@ Code, scripts and our own lists in this repository (`src/`, `scripts/`, `kotlin/
 
 - Another batch of real receipts for an unbiased final evaluation and the calibration of the thresholds.
 - Integration into the app per [docs/app-integration.md](docs/app-integration.md); publish the repository first.
+- Script that updates `kotlin/app-snapshot/` from a checkout of the app and records repository, branch and commit in `SOURCE` (by hand so far).
 - Shipped with the app or downloaded later (own versioning, update without an app release)?
 - Further languages (fr/it/es/en) in **one** model under 2 MB, with its own abbreviations and private labels per language. Without real receipts in these languages there are only figures on generated data; the German result must not get worse.
 
