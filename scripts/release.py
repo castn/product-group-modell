@@ -26,12 +26,14 @@ import json
 import shutil
 import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
-from pgm.export import FORMAT, file_name, read
+from pgm.export import FORMAT, MARKET, ExportedModel, file_name, read
 
 ROOT = Path(__file__).resolve().parent.parent
 REPO_URL = "https://codeberg.org/castn/product-group-modell"
+LICENSE_DOC = "docs/license.md"
 
 
 def git(*args: str) -> str:
@@ -44,50 +46,143 @@ def sources() -> list[dict]:
     manifest = json.loads((ROOT / "data" / "raw" / "MANIFEST.json").read_text())
     return [
         {"file": name}
-        | {k: v[k] for k in ("url", "revision", "fetched", "rows") if k in v}
-        for name, v in manifest.items()
+        | {k: v[k] for k in ("url", "revision", "fetched", "rows", "sha256") if k in v}
+        for name, v in sorted(manifest.items(), key=lambda item: source_rank(item[0]))
     ]
 
 
-def release_notes(version: str, commit: str, sources: list[dict]) -> str:
-    market = version.rsplit("-", 1)[0]
-    lines = [
-        f"# Model {version}",
-        "",
+# Prefix of the manifest key → readable name of the source, in the order of the notes
+SOURCE_NAMES = {
+    "food": "Open Food Facts, products",
+    "tax-food": "Open Food Facts, categories",
+    "beauty": "Open Beauty Facts, products",
+    "tax-beauty": "Open Beauty Facts, categories",
+    "products": "Open Products Facts, products",
+    "tax-products": "Open Products Facts, categories",
+    "petfood": "Open Pet Food Facts, products",
+    "tax-petfood": "Open Pet Food Facts, categories",
+}
+
+
+def source_prefix(file: str) -> str:
+    return file.rsplit("-", 3)[0]  # "tax-food-2026-10-03.json" → "tax-food"
+
+
+def source_rank(file: str) -> tuple[int, str]:
+    order = list(SOURCE_NAMES)
+    prefix = source_prefix(file)
+    return (order.index(prefix) if prefix in order else len(order), file)
+
+
+def source_name(file: str) -> str:
+    return SOURCE_NAMES.get(source_prefix(file), file)
+
+
+def file_name_parts(model_file: str, market: str) -> list[str]:
+    """The file name with each part explained below it, as in docs/interface.md."""
+    col_format = len("pgm-")
+    col_market = len(f"pgm-f{FORMAT}-")
+    col_month = col_market + len(market) + 1
+    col_seq = col_month + len("YYYY.MM.")
+    month = model_file[col_month : col_seq - 1].replace(".", "-")
+    seq = "sequence number within the month"
+    if "-rc" in model_file:
+        seq += ", -rc… marks a release candidate"
+    parts = [
+        (col_format, f"file format {FORMAT}"),
         (
-            "Assigns item names from receipts to an item group "
-            f"(market {market}). Description, integration and license: {REPO_URL}"
+            col_market,
+            f"market {market} (language-country): chains, private labels, abbreviations differ per country",
         ),
-        "",
         (
-            f"Format {FORMAT}: loads only with the Kotlin files for format {FORMAT} "
-            f"(`kotlin/reference/`, commit `{commit}`)."
+            col_month,
+            f"month of the data snapshot ({month}, see Data), not of the build",
         ),
+        (col_seq, seq),
+    ]
+    lines = [model_file]
+    for i in reversed(range(len(parts))):
+        row = [" "] * parts[i][0]
+        for col, _ in parts[:i]:
+            row[col] = "│"
+        lines.append("".join(row) + "└ " + parts[i][1])
+    return lines
+
+
+def release_notes(
+    version: str,
+    commit: str,
+    sources: list[dict],
+    model: ExportedModel,
+    model_file: str,
+    size: int,
+    sha256: str,
+) -> str:
+    market = MARKET.match(version).group()
+    exported = datetime.fromtimestamp(model.created, UTC).strftime("%Y-%m-%d")
+    sha = commit.removesuffix("-dirty")
+    commit_link = f"[`{sha[:12]}`]({REPO_URL}/commit/{sha})"
+    license_link = f"[{LICENSE_DOC}]({REPO_URL}/src/commit/{sha}/{LICENSE_DOC})"
+    lines = [f"# Model {version}", ""]
+    if commit.endswith("-dirty"):
+        lines += [
+            "> [!CAUTION]",
+            "> Built from uncommitted changes (`--allow-dirty`). This model cannot be",
+            "> reproduced from the repository. **Do not publish it.**",
+            "",
+        ]
+    lines += [
+        f"Assigns item names from receipts to an item group (market `{market}`).",
+        f"Description, integration and license: {REPO_URL}",
+        "",
+        "| | |",
+        "|---|---|",
+        f"| Market | `{market}` |",
+        f"| File format | {FORMAT} |",
+        f"| Size | {size / 1e6:.2f} MB |",
+        f"| Classes / groups | {len(model.labels)} / {len(set(model.groups))} |",
+        f"| Thresholds | `SURE` ≥ {model.t_sure:g}, `SUGGESTION` ≥ {model.t_suggest:g} |",
+        f"| Exported | {exported} |",
+        f"| Commit | {commit_link} |",
+        "",
+        "## Files",
+        "",
+        f"`{model_file}` · SHA-256 `{sha256}`",
+        "",
+        f"Check after download: `sha256sum -c {model_file}.sha256`",
+        "",
+        "```",
+        *file_name_parts(model_file, market),
+        "```",
+        "",
+        "> [!IMPORTANT]",
+        f"> **Format {FORMAT}** loads only with the Kotlin files for format {FORMAT}",
+        "> (`kotlin/reference/` at the commit above).",
+        "> With older files, the app rejects the model and works without it.",
         "",
         "## Data",
         "",
-        (
-            "Trained with data from Open Food Facts, Open Beauty Facts, Open Products "
-            "Facts and Open Pet Food Facts (https://openfoodfacts.org) under the Open "
-            "Database License (ODbL 1.0), contents under DbCL 1.0. How the model is "
-            f"built from the data is in the repository ({REPO_URL}, commit `{commit}`)."
-        ),
+        "Trained with data from Open Food Facts, Open Beauty Facts, Open Products Facts",
+        "and Open Pet Food Facts (https://openfoodfacts.org) under the",
+        "Open Database License (ODbL 1.0), contents under DbCL 1.0.",
+        "How the model is built from the data is in the repository at the commit above.",
         "",
-        "| Source | Revision | fetched | Rows |",
-        "|---|---|---|---:|",
+        "| Source | Fetched | Rows | SHA-256 |",
+        "|---|---|---:|---|",
     ]
     for src in sources:
-        revision = f"`{src['revision'][:12]}`" if "revision" in src else "–"
+        name = f"[{source_name(src['file'])}]({src['url']})"
+        if "revision" in src:
+            name += f" @ `{src['revision'][:12]}`"
         lines.append(
-            f"| {src['url']} ({src['file']}) | {revision} | {src['fetched'][:10]} "
-            f"| {src['rows']:,} |".replace(",", ".")
+            f"| {name} | {src['fetched'][:10]} | {src['rows']:,} "
+            f"| `{src['sha256'][:12]}` |"
         )
     lines += [
         "",
-        (
-            "Anyone who uses the model publicly must credit Open Food Facts and the "
-            "ODbL (§4.3)."
-        ),
+        "> [!NOTE]",
+        "> Anyone who uses the model publicly must credit Open Food Facts and the",
+        f"> ODbL (§4.3). Notice text for apps: {license_link}.",
         "",
     ]
     return "\n".join(lines)
@@ -145,7 +240,10 @@ def main() -> None:
 
     data_sources = sources()
     (out / "RELEASE.md").write_text(
-        release_notes(version, commit, data_sources), encoding="utf-8"
+        release_notes(
+            version, commit, data_sources, model, src.name, len(data), sha256
+        ),
+        encoding="utf-8",
     )
 
     rel = out.relative_to(ROOT)
