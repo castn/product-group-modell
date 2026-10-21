@@ -1,14 +1,16 @@
 """Exports a trained model in the app's format (step 9).
 
 Input:   models/<name>/ (scripts/train.py)
-Output:  dist/pgm-<version>.bin          model file for the app
-         dist/pgm-<version>.golden.tsv   expected predictions for the Kotlin test
+Output:  dist/pgm-f<format>-<market>-<release>.bin          model file for the app
+         dist/pgm-f<format>-<market>-<release>.golden.tsv   expected predictions for the Kotlin test
+
+Version scheme: docs/interface.md, section "Versions and file names".
 
 Before writing, checks how much rounding the feature vectors to int8 changes the
 predictions on the validation set. The golden values contain only self-written
 lines and generated validation lines, no real test data.
 
-Usage:  uv run scripts/export.py --name dev2 --version 2026.10-de-1
+Usage:  uv run scripts/export.py --name dev4 --release 2026.10.1 [--market de-DE]
 """
 
 import argparse
@@ -19,7 +21,16 @@ import numpy as np
 import polars as pl
 
 from pgm.categories import class_groups
-from pgm.export import ExportedModel, now, probabilities, quantize, read, write
+from pgm.export import (
+    ExportedModel,
+    file_name,
+    model_version,
+    now,
+    probabilities,
+    quantize,
+    read,
+    write,
+)
 from pgm.golden import golden_inputs, model_tsv
 from pgm.model import Featurizer, load, predict_proba
 from pgm.stores import table
@@ -32,13 +43,20 @@ MAX_BYTES = 2 * 1024 * 1024
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", required=True)
-    parser.add_argument("--version", required=True)
+    parser.add_argument(
+        "--market", default="de-DE", help="language-country, e.g. de-DE"
+    )
+    parser.add_argument("--release", required=True, help="YYYY.MM.N, e.g. 2026.10.1")
     parser.add_argument("--t-sure", type=float, default=0.9)
     parser.add_argument("--t-suggest", type=float, default=0.5)
     parser.add_argument(
         "--check", type=int, default=3000, help="rows for the comparison"
     )
     args = parser.parse_args()
+    try:
+        version = model_version(args.market, args.release)
+    except ValueError as e:
+        parser.error(str(e))
 
     model = load(ROOT / "models" / args.name)
     groups = class_groups()
@@ -46,7 +64,7 @@ def main() -> None:
     scales, q = quantize(weights)
     chains, aliases = table()
     exported = ExportedModel(
-        version=args.version,
+        version=version,
         created=now(),
         features=model.cfg.features,
         dim=model.cfg.dim,
@@ -62,7 +80,7 @@ def main() -> None:
         output=model.output.weight.detach().numpy().astype(np.float32),
         bias=model.output.bias.detach().numpy().astype(np.float32),
     )
-    out = ROOT / "dist" / f"pgm-{args.version}.bin"
+    out = ROOT / "dist" / file_name(version)
     write(exported, out)
     size = out.stat().st_size
     m = read(out)

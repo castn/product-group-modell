@@ -108,7 +108,7 @@ Implementation: [`src/pgm/export.py`](../src/pgm/export.py) (write, read) and `P
 |---|---|---|
 | magic | 4 bytes | `PGM1` |
 | format | u16 | Version of the format **and of the rules for normalization and features**, currently 2. If a rule changes, the version goes up, and old models are rejected instead of being computed wrongly. (1 → 2: numbers and units no longer become features.) |
-| version | str16 | Model version, e.g. `2026.10-de-1` |
+| version | str16 | Model version `<market>-<release>`, e.g. `de-DE-2026.10.1` (see below) |
 | created | i64 | Unix time in seconds |
 | buckets | u32 | Number of feature rows |
 | dim | u16 | Length of a feature vector |
@@ -129,3 +129,20 @@ Implementation: [`src/pgm/export.py`](../src/pgm/export.py) (write, read) and `P
 | crc32 | u32 | CRC-32 (like `java.util.zip.CRC32`) over all preceding bytes |
 
 Size with 2^16 buckets, dim 24 and 46 classes: 1.84 MB.
+
+## Versions and file names
+
+```
+pgm-f2-de-DE-2026.10.1.bin
+    │  │     │       └ sequence number within the month, optionally -rc1, -rc2 … for candidates
+    │  │     └ month of the data snapshot (raw data per data/raw/MANIFEST.json), not of the build
+    │  └ market as language-country (BCP 47): chains, private labels and abbreviations depend on the country
+    └ format field: only models in the format known to the app's Kotlin files can be loaded
+```
+
+- The **model version** in the header is `<market>-<release>`, i.e. without `pgm-` and format version: `de-DE-2026.10.1`. It appears in the app's notice.
+- The **file name** is `pgm-f<format>-<modelversion>.bin`. An app that loads format 2 takes the newest `pgm-f2-<market>-*.bin`.
+- `scripts/export.py --market de-DE --release 2026.10.1` builds both (`pgm.export.model_version`, `pgm.export.file_name`) and rejects deviations from the scheme.
+- Retrained, new thresholds or new classes: only the release number goes up. New rules for normalization or features: `format` goes up (and with it the file name).
+- Git tag per shipped model: `model-<modelversion>`, e.g. `model-de-DE-2026.10.1`.
+- A shared model for several markets (step 10) gets its own market identifier; it will be decided when the time comes.

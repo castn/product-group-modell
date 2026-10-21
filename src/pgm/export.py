@@ -4,7 +4,7 @@ The format is described in docs/interface.md. All numbers little endian.
 
     magic          4 B    "PGM1"
     format         u16    version of the format and of the feature rules (2)
-    version        str16  model version, e.g. "2026.10-de-1"
+    version        str16  model version <market>-<release>, e.g. "de-DE-2026.10.1"
     created        i64    Unix time in seconds
     buckets        u32
     dim            u16
@@ -29,6 +29,7 @@ str8/str16: length as u8/u16, then UTF-8 (always ASCII here).
 """
 
 import io
+import re
 import struct
 import time
 import zlib
@@ -42,6 +43,25 @@ from pgm.stores import lookup
 
 MAGIC = b"PGM1"
 FORMAT = 2
+
+# Market as language-country (de-DE): chains and private labels depend on the country, not just the language
+MARKET = re.compile(r"[a-z]{2}-[A-Z]{2}")
+# Month of the data snapshot and sequence number, optionally a candidate: 2026.10.1, 2026.10.2-rc1
+RELEASE = re.compile(r"\d{4}\.(0[1-9]|1[0-2])\.[1-9]\d*(-rc[1-9]\d*)?")
+
+
+def model_version(market: str, release: str) -> str:
+    """Model version for the header and the notice in the app, e.g. "de-DE-2026.10.1"."""
+    if not MARKET.fullmatch(market):
+        raise ValueError(f"market {market!r}: expected language-country like de-DE")
+    if not RELEASE.fullmatch(release):
+        raise ValueError(f"release {release!r}: expected YYYY.MM.N like 2026.10.1")
+    return f"{market}-{release}"
+
+
+def file_name(version: str) -> str:
+    """File name with the format version in front: an app that loads format 2 looks for pgm-f2-*."""
+    return f"pgm-f{FORMAT}-{version}.bin"
 
 
 @dataclass

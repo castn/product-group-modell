@@ -7,7 +7,7 @@ Guide for integrating the model into MyExpenses. It is based on the state of `It
 | What | From | Where in the app |
 |---|---|---|
 | `Normalize.kt`, `Features.kt`, `ProductGroupModel.kt` | `kotlin/reference/src/main/kotlin/pgm/` | next to `ItemGroupClassifier`, e.g. package `…next.receipts.model` |
-| Model file `pgm-<version>.bin` (1.84 MB) | `dist/` after `scripts/export.py` | assets, e.g. `assets/item_groups/model.bin` |
+| Model file `pgm-f<format>-<market>-<release>.bin` (1.84 MB) | `dist/` after `scripts/export.py` | assets, e.g. `assets/item_groups/model.bin` |
 | Golden values for the test | `tests/golden/` | test resources |
 | new source `MODEL` | – | `ItemGroupClassifier` |
 | Notice about Open Food Facts | `docs/license.md` | About dialog |
@@ -23,7 +23,7 @@ Copy the three files and only adjust the `package` line. **Change nothing else:*
 ## 2. Model file as an asset
 
 ```
-myExpenses/src/main/assets/item_groups/model.bin   ← dist/pgm-2026.10-de-1.bin
+myExpenses/src/main/assets/item_groups/model.bin   ← dist/pgm-f2-de-DE-2026.10.1.bin
 ```
 
 - The file name in the app stays fixed, the version is in the file (`model.version`).
@@ -181,9 +181,9 @@ Required by ODbL §4.3 as soon as the model is shipped. Text (German and English
 
 ## 8. Shipping a new model version
 
-1. Train here, compare against the previous version with `scripts/evaluate.py` and export with `scripts/export.py --version <version>`.
+1. Train here, compare against the previous version with `scripts/evaluate.py` and export with `scripts/export.py --release <release>` (scheme: [interface.md](interface.md#versions-and-file-names)).
 2. Run the Kotlin test here (`./gradlew :reference:test`); it checks the model in `dist/` against its golden values.
-3. Tag the version here (`git tag model-<version>`).
+3. Tag the version here (`git tag model-<modelversion>`, e.g. `model-de-DE-2026.10.1`).
 4. Replace the file in the app as `assets/item_groups/model.bin` and add an entry to the ChangeLog.
 
 If normalization or features change, the format version goes up. Then the three Kotlin files must be replaced in the same app version too, otherwise the new model does not load and the app works without a model.
