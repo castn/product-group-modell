@@ -12,13 +12,13 @@
 
 </div>
 
+The model assigns item names from receipts to an item group of the app [MyExpenses](https://github.com/mtotschnig/MyExpenses).
+It learns from **Open Food Facts**, **Open Beauty Facts**, **Open Products Facts** and **Open Pet Food Facts**, is trained in Python, and in the app is computed with the same weights by a Kotlin implementation without libraries.
+
 ```
 "JA! H-Milch 1L"       -->  milch_sahne -> dairy,  confidence 1.00  ->  SURE
 "Bio Vollmilch 3,5%"   -->  milch_sahne -> dairy,  confidence 0.85  ->  SUGGESTION
 ```
-
-The model assigns item names from receipts to an item group of the app [MyExpenses](https://github.com/mtotschnig/MyExpenses).
-It learns from **Open Food Facts**, **Open Beauty Facts**, **Open Products Facts** and **Open Pet Food Facts**, is trained in Python, and in the app is computed with the same weights by a Kotlin implementation without libraries.
 
 ## Contents
 
