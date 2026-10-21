@@ -1,4 +1,4 @@
-"""File format of the model for the app (step 9) and reference computation without PyTorch.
+"""File format of the model for the app and reference computation without PyTorch.
 
 The format is described in docs/interface.md. All numbers little endian.
 

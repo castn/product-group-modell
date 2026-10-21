@@ -34,7 +34,7 @@ class ProductGroupModel {
 - `store`: name of the merchant as the app knows it (e.g. `"REWE Markt GmbH"`), or `null`. The model detects the chain from it (section Store).
 - The model predicts fine classes; the app's group for each class is stored in the model file. `deposit` stays a rule in the app, `other` is only chosen by the user.
 - Uncertain cases return `null`, and the next source takes over.
-- Order in `ItemGroupClassifier`: `RULE`, `PRODUCT`, `WORDS`, then **`MODEL` from `t_suggest`**, then `DICTIONARY`, then `MERCHANT`. On real receipts the model does better before the dictionary than after it (README, step 8).
+- Order in `ItemGroupClassifier`: `RULE`, `PRODUCT`, `WORDS`, then **`MODEL` from `t_suggest`**, then `DICTIONARY`, then `MERCHANT`. On real receipts the model does better before the dictionary than after it ([README](../README.md#results-so-far)).
 
 ## Normalization
 
@@ -145,4 +145,4 @@ pgm-f2-de-DE-2026.10.1.bin
 - `scripts/export.py --market de-DE --release 2026.10.1` builds both (`pgm.export.model_version`, `pgm.export.file_name`) and rejects deviations from the scheme.
 - Retrained, new thresholds or new classes: only the release number goes up. New rules for normalization or features: `format` goes up (and with it the file name).
 - Git tag per shipped model: `model-<modelversion>`, e.g. `model-de-DE-2026.10.1`.
-- A shared model for several markets (step 10) gets its own market identifier; it will be decided when the time comes.
+- A shared model for several markets gets its own market identifier; it will be decided when the time comes.

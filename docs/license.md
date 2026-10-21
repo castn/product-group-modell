@@ -1,6 +1,6 @@
 # License: Open Food Facts and the model file
 
-As of: October 2026. This is an assessment for development purposes, **not legal advice**. Before the first release in the app, the assessment should be confirmed with Open Food Facts (section "Open").
+As of: October 2026. This is an assessment for development purposes, **not legal advice**. The assessment has not yet been confirmed with Open Food Facts.
 
 ## Summary
 
@@ -67,26 +67,12 @@ The **model files** (`pgm-*.bin`) are deliberately not under the GPL. On distrib
 
 ## Notice text for the app
 
-In the About dialog (step 11), together with the model version. The store description does not need it, but it would not hurt.
+In the app's About dialog, together with the model version. The store description does not need it, but it would not hurt.
 
 **German:**
 
-> Die Erkennung der Warengruppen auf Kassenzetteln nutzt ein Modell, das mit Daten von Open Food Facts, Open Beauty Facts, Open Products Facts und Open Pet Food Facts erstellt wurde (https://openfoodfacts.org). Diese Daten stehen unter der Open Database License (ODbL). Wie das Modell aus den Daten erzeugt wird: ‹Link zum Repository›. Modellversion ‹de-DE-2026.10.1›.
+> Die Erkennung der Warengruppen auf Kassenzetteln nutzt ein Modell, das mit Daten von Open Food Facts, Open Beauty Facts, Open Products Facts und Open Pet Food Facts erstellt wurde (https://openfoodfacts.org). Diese Daten stehen unter der Open Database License (ODbL). Wie das Modell aus den Daten erzeugt wird: https://codeberg.org/castn/product-group-modell. Modellversion ‹de-DE-2026.10.1›.
 
 **English:**
 
-> Item group recognition on receipts uses a model built with data from Open Food Facts, Open Beauty Facts, Open Products Facts and Open Pet Food Facts (https://openfoodfacts.org), made available under the Open Database License (ODbL). How the model is built from the data: ‹link to repository›. Model version ‹de-DE-2026.10.1›.
-
-## Before the first release
-
-- [x] License for code and own lists: GPL-3.0-or-later like the app (section "License of this repository").
-- [ ] Make the repository public.
-- [ ] Model version as a Git tag; in the tag text the revision of the raw data from the manifest.
-- [ ] Notice text in the About dialog with link to the repository and model version.
-- [ ] Do not take `dist/*.golden.tsv` into the app.
-- [ ] Ask Open Food Facts about the classification (see below) and note the answer here.
-
-## Open
-
-- **Inquiry with Open Food Facts**, via the contact options on openfoodfacts.org. Suggested question: "We train a small classification model (hashed character n-grams, no product names in the model) on product names and categories and ship it in an open-source app. Do you share the classification as a Produced Work with a notice per §4.3 and disclosure of the method per §4.6 via a public repository?"
-- The **taxonomies** are also in the Open Food Facts code repository, which itself is under the AGPL. But we load them from the data exports and only use names and parent relations as data, not the code. This should be clarified in the inquiry as well.
+> Item group recognition on receipts uses a model built with data from Open Food Facts, Open Beauty Facts, Open Products Facts and Open Pet Food Facts (https://openfoodfacts.org), made available under the Open Database License (ODbL). How the model is built from the data: https://codeberg.org/castn/product-group-modell. Model version ‹de-DE-2026.10.1›.
