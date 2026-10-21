@@ -1,6 +1,11 @@
 # Integration into an app
 
-Guide for integrating the model into an Android or JVM app, written for MyExpenses. Model specification: [interface.md](interface.md), license obligations: [license.md](license.md).
+Guide for integrating the model into an Android or JVM app, written for [MyExpenses](https://github.com/mtotschnig/MyExpenses).
+
+| See also | |
+|---|---|
+| [interface.md](interface.md) | model specification: normalization, features, computation, file format |
+| [license.md](license.md) | license obligations and the notice text |
 
 ## Overview
 
@@ -13,9 +18,22 @@ Guide for integrating the model into an Android or JVM app, written for MyExpens
 
 The three Kotlin files need no libraries, only `java.nio`, `java.text.Normalizer` and `java.util.zip.CRC32`.
 
+**Steps:**
+
+1. [Take over the Kotlin files](#1-take-over-the-kotlin-files)
+2. [Model file as an asset](#2-model-file-as-an-asset)
+3. [Loading](#3-loading)
+4. [Placing it next to other sources](#4-placing-it-next-to-other-sources)
+5. [Golden value tests](#5-golden-value-tests)
+6. [Notice in the About dialog](#6-notice-in-the-about-dialog)
+7. [Shipping a new model version](#7-shipping-a-new-model-version)
+
 ## 1. Take over the Kotlin files
 
-Copy the three files and only adjust the `package` line. **Change nothing else:** any deviation in normalization or features shifts the predictions. Changes belong in this repository, with new golden values, and go from there into the app.
+Copy the three files and only adjust the `package` line.
+
+> [!WARNING]
+> **Change nothing else.** Any deviation in normalization or features shifts the predictions. Changes belong in this repository, with new golden values, and go from there into the app.
 
 `FeatureConfig` and `Level` are public. If the names clash in the app's package, better make them `internal` than rename them.
 
@@ -27,11 +45,17 @@ src/main/assets/item_groups/model.bin   ← pgm-f2-de-DE-2026.10.1.bin
 
 - The file name in the app stays fixed, the version is in the file (`model.version`).
 - The file is read once in full (`readBytes()`). Whether the APK compresses it does not matter for that.
-- A model with the wrong format or a corrupted file throws `IllegalArgumentException` on load. The app then continues without a model (section 3).
+- A model with the wrong format or a corrupted file throws `IllegalArgumentException` on load. The app then continues without a model ([section 3](#3-loading)).
 
 ## 3. Loading
 
-Once, in the background, and then keep it in memory. The file needs about 2 MB of heap. Loading takes a few tens of milliseconds, so not on the main thread.
+Once, in the background, and then keep it in memory.
+
+| | |
+|---|---|
+| Memory | about 2 MB of heap |
+| Load time | a few tens of milliseconds, so **not on the main thread** |
+| On failure | `null`: the app works as before, without a model |
 
 ```kotlin
 /** Loads the model on first access; null if it is missing or does not fit. */
@@ -61,43 +85,54 @@ class ItemGroupModelProvider(private val context: Context) {
 
 ## 4. Placing it next to other sources
 
-- `classify(name, store)` only returns a group from `t_suggest` (currently 0.5), otherwise `null`, and then the app's next source takes over.
-- `level` distinguishes `SURE` (from `t_sure`, currently 0.9) and `SUGGESTION`. The app can mark suggestions in the review screen.
-- `store` is the merchant as the app knows it ("REWE Markt GmbH"). The model detects the chain itself, unknown stores do no harm.
-- The item name goes in as the parser delivers it. The app does not need to remove remnants like "0, 750 kg x 1,79 EUR/kg".
-- Skip a `groupId` the app does not know instead of guessing.
-- What the user assigned themselves should take precedence over the model.
-- The model belongs **before** a simple dictionary. On real receipts that was better than after it ([README](../README.md#results-so-far)).
-- `classId` (e.g. `pflanzendrinks`) is finer than the group, for apps that later want to show finer groups.
+```
+RULE → PRODUCT → WORDS → MODEL → DICTIONARY → MERCHANT
+```
+
+| Input / output | Behaviour |
+|---|---|
+| Item name | goes in as the parser delivers it. The app does not need to remove remnants like `0, 750 kg x 1,79 EUR/kg`. |
+| `store` | the merchant as the app knows it (`"REWE Markt GmbH"`). The model detects the chain itself, unknown stores do no harm. |
+| Result | `classify(name, store)` only returns a group from `t_suggest` (currently 0.5), otherwise `null`, and then the app's next source takes over. |
+| `level` | distinguishes `SURE` (from `t_sure`, currently 0.9) and `SUGGESTION`. The app can mark suggestions in the review screen. |
+| `groupId` | skip a group the app does not know instead of guessing. |
+| `classId` | e.g. `pflanzendrinks`, finer than the group, for apps that later want to show finer groups. |
+
+> [!TIP]
+> - What the user assigned themselves should take precedence over the model.
+> - The model belongs **before** a simple dictionary. On real receipts that was better than after it ([README](../README.md#results-so-far)).
 
 ## 5. Golden value tests
 
-So that the copied files compute exactly as here:
+So that the copied files compute exactly as here ([what golden values are](../README.md#golden-value-tests)):
 
 1. Copy `tests/golden/normalize.tsv`, `features.tsv`, `tiny.bin` and `tiny.tsv` into the test resources, e.g. `src/test/resources/item_groups/`.
 2. Take over `GoldenTest.kt` and `ModelGoldenTest.kt` from `kotlin/reference/src/test/kotlin/pgm/` and read the files from the resources instead of via `System.getProperty("golden.dir")`:
 
-```kotlin
-private fun resource(name: String) =
-    javaClass.getResourceAsStream("/item_groups/$name")!!.readBytes()
-```
+   ```kotlin
+   private fun resource(name: String) =
+       javaClass.getResourceAsStream("/item_groups/$name")!!.readBytes()
+   ```
 
-`exportedModels()` against `dist/` is dropped in the app. Instead, a test checks that the shipped asset loads:
+3. `exportedModels()` against `dist/` is dropped in the app. Instead, a test checks that the shipped asset loads:
 
-```kotlin
-@Test
-fun bundledModelLoads() {
-    val bytes = File("src/main/assets/item_groups/model.bin").readBytes()
-    val model = ProductGroupModel.load(bytes)
-    assertTrue(model.version.isNotEmpty())
-    // The app must know every group of the model
-    assertTrue(model.groups.all { ItemGroup.ofId(it) != null }, model.groups.toString())
-}
-```
+   ```kotlin
+   @Test
+   fun bundledModelLoads() {
+       val bytes = File("src/main/assets/item_groups/model.bin").readBytes()
+       val model = ProductGroupModel.load(bytes)
+       assertTrue(model.version.isNotEmpty())
+       // The app must know every group of the model
+       assertTrue(model.groups.all { ItemGroup.ofId(it) != null }, model.groups.toString())
+   }
+   ```
 
 ## 6. Notice in the About dialog
 
-Required by ODbL §4.3 as soon as the model is shipped. Text (German and English) in [license.md](license.md), section "Notice text for the app". The model version comes from `model.version`.
+> [!IMPORTANT]
+> Required by ODbL §4.3 as soon as the model is shipped.
+
+Text (German and English) in [license.md](license.md#notice-text-for-the-app). The model version comes from `model.version`.
 
 ## 7. Shipping a new model version
 
@@ -105,7 +140,8 @@ Required by ODbL §4.3 as soon as the model is shipped. Text (German and English
 2. Check with `scripts/release.py --version <modelversion>` and assemble the release, then tag and upload.
 3. Replace the file in the app as `assets/item_groups/model.bin` and add an entry to the ChangeLog.
 
-If normalization or features change, the format version goes up. Then the three Kotlin files must be replaced in the same app version too, otherwise the new model does not load and the app works without a model.
+> [!WARNING]
+> If normalization or features change, the **format version** goes up. Then the three Kotlin files must be replaced in the same app version too, otherwise the new model does not load and the app works without a model.
 
 ## Key figures
 
