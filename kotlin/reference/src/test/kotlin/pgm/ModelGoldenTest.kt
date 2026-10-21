@@ -45,7 +45,7 @@ class ModelGoldenTest {
 
     @Test
     fun tinyModel() {
-        val model = ProductGroupModel.load(File(golden, "tiny.pgm").readBytes())
+        val model = ProductGroupModel.load(File(golden, "tiny.bin").readBytes())
         assertEquals("tiny-1", model.version)
         assertEquals(listOf("produce", "produce", "dairy", "dairy", "household", "alcohol"), model.groups)
         check(model, File(golden, "tiny.tsv"))
@@ -72,7 +72,7 @@ class ModelGoldenTest {
 
     @Test
     fun classifyUsesThresholds() {
-        val model = ProductGroupModel.load(File(golden, "tiny.pgm").readBytes())
+        val model = ProductGroupModel.load(File(golden, "tiny.bin").readBytes())
         // The random model is never sure: probabilities around 1/6
         assertNull(model.classify("Bio Vollmilch", "REWE"))
         assertNull(model.classify("🍓"))
@@ -81,7 +81,7 @@ class ModelGoldenTest {
 
     @Test
     fun corruptFileIsRejected() {
-        val data = File(golden, "tiny.pgm").readBytes()
+        val data = File(golden, "tiny.bin").readBytes()
         data[100] = (data[100].toInt() xor 1).toByte()
         assertFailsWith<IllegalArgumentException> { ProductGroupModel.load(data) }
     }

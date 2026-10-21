@@ -4,7 +4,7 @@ tests/golden/normalize.tsv is written by hand (specification).
 tests/golden/features.tsv is generated here from the Python implementation;
 tests/test_golden.py checks that the file is up to date.
 
-tests/golden/tiny.pgm is a small model with random weights (no data
+tests/golden/tiny.bin is a small model with random weights (no data
 from Open Food Facts) in the app's format, tests/golden/tiny.tsv the predictions
 of the reference computation for it. For real models, scripts/export.py writes
 such a file next to the .bin.
@@ -151,6 +151,6 @@ def golden_inputs() -> list[tuple[str, str | None]]:
 
 if __name__ == "__main__":
     (GOLDEN / "features.tsv").write_text(features_tsv(), encoding="utf-8")
-    write(tiny_model(), GOLDEN / "tiny.pgm")
-    tiny = read(GOLDEN / "tiny.pgm")
+    write(tiny_model(), GOLDEN / "tiny.bin")
+    tiny = read(GOLDEN / "tiny.bin")
     (GOLDEN / "tiny.tsv").write_text(model_tsv(tiny, golden_inputs()), encoding="utf-8")
