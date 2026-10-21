@@ -4,7 +4,7 @@ Input:   data/interim/de.parquet (scripts/extract_de.py)
 Output:  data/interim/de_labeled.parquet (columns label, group, reason, decisive_tags)
          reports/mapping.md
 
-The report is the work list for mapping/off_to_group.yaml: most frequent
+The report is the work list for mapping/off_to_class.yaml: most frequent
 unmapped categories, most frequent conflicts, and entries that have no effect.
 
 Usage:  uv run scripts/mapping_report.py
