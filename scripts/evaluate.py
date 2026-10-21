@@ -1,4 +1,4 @@
-"""Evaluates a model on the real receipts (steps 7 and 8).
+"""Evaluates a model on the real receipts.
 
 Input:   models/<name>/ (scripts/train.py), data/eval/receipts.csv
 Output:  reports/eval-<name>.md (contains rows of the test data, do not commit)

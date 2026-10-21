@@ -1,4 +1,4 @@
-"""Exports a trained model in the app's format (step 9).
+"""Exports a trained model in the app's format.
 
 Input:   models/<name>/ (scripts/train.py)
 Output:  dist/pgm-f<format>-<market>-<release>.bin          model file for the app

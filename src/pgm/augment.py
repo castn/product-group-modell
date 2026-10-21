@@ -1,4 +1,4 @@
-"""Generates receipt-style lines from clean product names (step 5).
+"""Generates receipt-style lines from clean product names.
 
 Tills print abbreviated names in upper case with private label and quantity, and
 text recognition confuses characters and spaces. Each transformation has a

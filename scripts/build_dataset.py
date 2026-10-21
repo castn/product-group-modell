@@ -1,4 +1,4 @@
-"""Builds the training and validation data (step 5).
+"""Builds the training and validation data.
 
 Input:   data/interim/de_labeled.parquet (scripts/mapping_report.py)
 Output:  data/processed/dataset.parquet with the columns

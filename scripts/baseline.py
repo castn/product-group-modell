@@ -1,4 +1,4 @@
-"""Measures the app's dictionary as the baseline (step 7).
+"""Measures the app's dictionary as the baseline.
 
 Calls the Kotlin baseline (kotlin/baseline, builds the code from kotlin/app-snapshot):
     cd kotlin && ./gradlew :baseline:installDist

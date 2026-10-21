@@ -9,7 +9,7 @@
   static.openpetfoodfacts.org (not on Hugging Face), streamed and converted to
   the same schema. Pet food is not in Open Food Facts.
 
-There is no filtering by language or country (step 10 needs all languages),
+There is no filtering by language or country (further languages need all of them),
 only entries without a product name or without a category are dropped.
 
 Plus the category taxonomies of the projects (tax-food, tax-beauty, tax-products,

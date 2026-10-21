@@ -1,4 +1,4 @@
-"""Trains the model and evaluates it (step 7).
+"""Trains the model and evaluates it.
 
 Input:   data/processed/dataset.parquet (scripts/build_dataset.py)
 Output:  models/<name>/ (weights and configuration)
@@ -11,7 +11,7 @@ Evaluated on
   app's dictionary: model from a threshold, otherwise dictionary (+ merchant).
 
 The temperature T is chosen on the validation set so that the confidence matches
-the hit rate (step 8, only roughly here).
+the hit rate (only roughly here).
 
 Usage:  uv run scripts/train.py --name dev [--dim 24] [--epochs 5] …
 """
