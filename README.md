@@ -128,7 +128,7 @@ uv run scripts/release.py --version de-DE-2026.11.1          # check and prepare
 - `fetch.py --limit N` for a quick test run, `--only food,tax-food` for individual sources, `--revision <commit>` to resume a download.
 - `train.py --dim --buckets --minn --maxn --[no-]bigrams --[no-]store --epochs --lr --seed` (defaults as in `dev4`: dim 24, 2^16 buckets, 2–5, word pairs and store on).
 - `export.py --market de-DE` (default) and `--release YYYY.MM.N` give the name `pgm-f<format>-<market>-<release>.bin`; scheme in [docs/interface.md](docs/interface.md#versions-and-file-names). `--t-sure --t-suggest` set the thresholds in the file.
-- `release.py` checks the model file (header, CRC, Kotlin test, clean working tree) and stores the model, checksum (`<file>.sha256`) and the release text `RELEASE.md`. The golden values from `dist/` are not included (license). At the end it prints the commands for tagging and uploading to Codeberg.
+- `release.py` checks the model file (header, CRC, Kotlin test, clean working tree) and stores the model, checksum (`<file>.sha256`), the release text `RELEASE.md` and the tag message `TAG.txt` (values as git trailers). The golden values from `dist/` are not included (license). At the end it prints the commands for tagging and uploading to Codeberg.
 - `scripts/baseline.py` measures the app's dictionary alone. Run `cd kotlin && ./gradlew :baseline:installDist` first; it needs the app's code in `kotlin/app-snapshot/`.
 
 </details>

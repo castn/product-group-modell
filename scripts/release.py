@@ -6,6 +6,7 @@ Output:  release/<modelversion>/
              pgm-f<format>-<modelversion>.bin          model file
              pgm-f<format>-<modelversion>.bin.sha256   checksum (sha256sum -c …)
              RELEASE.md                                text for the release page, do not upload
+             TAG.txt                                   message for the git tag (git tag -a … -F)
 
 Checked beforehand:
 - the file is readable (magic, format, CRC) and carries the model version in the header,
@@ -23,6 +24,7 @@ Usage:  uv run scripts/release.py --version de-DE-2026.10.1 [--skip-kotlin] [--a
 import argparse
 import hashlib
 import json
+import platform
 import shutil
 import subprocess
 import sys
@@ -188,6 +190,51 @@ def release_notes(
     return "\n".join(lines)
 
 
+def tag_message(
+    version: str,
+    commit: str,
+    sources: list[dict],
+    model: ExportedModel,
+    model_file: str,
+    size: int,
+    sha256: str,
+) -> str:
+    """Message for the annotated tag, values as git trailers (git interpret-trailers --parse)."""
+    market = MARKET.match(version).group()
+    month = version.removeprefix(f"{market}-")[: len("YYYY.MM")].replace(".", "-")
+    exported = datetime.fromtimestamp(model.created, UTC).strftime("%Y-%m-%d")
+    fetched = sorted(src["fetched"][:10] for src in sources)
+    revisions = sorted({src["revision"] for src in sources if "revision" in src})
+    pinned = [source_prefix(src["file"]) for src in sources if "revision" in src]
+    unpinned = [source_prefix(src["file"]) for src in sources if "revision" not in src]
+    lines = [
+        f"Model {version}",
+        "",
+        f"File format {FORMAT}, market {market}, data snapshot {month}.",
+    ]
+    if commit.endswith("-dirty"):
+        lines.append("Built from uncommitted changes (--allow-dirty), do not publish.")
+    lines += [
+        "",
+        f"Model-File: {model_file}",
+        f"Model-SHA256: {sha256}",
+        f"Model-Size: {size}",
+        f"Format: {FORMAT}",
+        f"Classes: {len(model.labels)}",
+        f"Groups: {len(set(model.groups))}",
+        f"Threshold-Sure: {model.t_sure:g}",
+        f"Threshold-Suggestion: {model.t_suggest:g}",
+        f"Exported: {exported}",
+        *(f"Data-HF-Revision: {rev}" for rev in revisions),
+        f"Data-Fetched: {fetched[0]}..{fetched[-1]}",
+        f"Data-Pinned: {', '.join(pinned) or '-'}",
+        f"Data-Unpinned: {', '.join(unpinned) or '-'}",
+        f"Python: {platform.python_version()}",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", required=True, help="e.g. de-DE-2026.10.1")
@@ -239,22 +286,18 @@ def main() -> None:
     checksum.write_text(f"{sha256}  {src.name}\n", encoding="utf-8")
 
     data_sources = sources()
-    (out / "RELEASE.md").write_text(
-        release_notes(
-            version, commit, data_sources, model, src.name, len(data), sha256
-        ),
-        encoding="utf-8",
-    )
+    facts = (version, commit, data_sources, model, src.name, len(data), sha256)
+    (out / "RELEASE.md").write_text(release_notes(*facts), encoding="utf-8")
+    (out / "TAG.txt").write_text(tag_message(*facts), encoding="utf-8")
 
     rel = out.relative_to(ROOT)
     print(f"→ {rel}/", file=sys.stderr)
     for f in sorted(out.iterdir()):
         print(f"   {f.name}  ({f.stat().st_size:,} bytes)", file=sys.stderr)
-    revisions = sorted({s["revision"][:12] for s in data_sources if "revision" in s})
     print(
         f"""
 Next steps:
-  git tag -a model-{version} -m "Model {version}, raw data {", ".join(revisions)}"
+  git tag -a model-{version} -F {rel}/TAG.txt
   git push origin model-{version}
   Create a release for the tag at {REPO_URL}/releases/new,
   text from {rel}/RELEASE.md, attachments: {src.name}, {checksum.name}""",
