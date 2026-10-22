@@ -14,7 +14,7 @@ Guide for integrating the model into an Android or JVM app, written for [MyExpen
 | `Normalize.kt`, `Features.kt`, `ProductGroupModel.kt` | `kotlin/reference/src/main/kotlin/pgm/` | own package, e.g. `…receipts.model` |
 | Model file `pgm-f<format>-<market>-<release>.bin` (1.84 MB) | release or `dist/` after `scripts/export.py` | assets, e.g. `assets/item_groups/model.bin` |
 | Golden values for the test | `tests/golden/` | test resources |
-| Notice about Open Food Facts | `docs/license.md` | About dialog |
+| Notice about Open Food Facts | `docs/data-license.md` | About dialog |
 
 The three Kotlin files need no libraries, only `java.nio`, `java.text.Normalizer` and `java.util.zip.CRC32`.
 

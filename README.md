@@ -128,7 +128,7 @@ uv run scripts/release.py --version de-DE-2026.11.1          # check and prepare
 - `fetch.py --limit N` for a quick test run, `--only food,tax-food` for individual sources, `--revision <commit>` to resume a download.
 - `train.py --dim --buckets --minn --maxn --[no-]bigrams --[no-]store --epochs --lr --seed` (defaults as in `dev4`: dim 24, 2^16 buckets, 2–5, word pairs and store on).
 - `export.py --market de-DE` (default) and `--release YYYY.MM.N` give the name `pgm-f<format>-<market>-<release>.bin`; scheme in [docs/interface.md](docs/interface.md#versions-and-file-names). `--t-sure --t-suggest` set the thresholds in the file.
-- `release.py` checks the model file (header, CRC, Kotlin test, clean working tree) and stores the model, checksum (`<file>.sha256`) and the release text `RELEASE.md`. The golden values from `dist/` are not included (license). At the end it prints the commands for tagging and uploading to Codeberg.
+- `release.py` checks the model file (header, CRC, Kotlin test, clean working tree) and stores the model, checksum (`<file>.sha256`), the release text `RELEASE.md` and the tag message `TAG.txt` (values as git trailers). The golden values from `dist/` are not included (license). At the end it prints the commands for tagging and uploading to GitHub.
 - `scripts/baseline.py` measures the app's dictionary alone. Run `cd kotlin && ./gradlew :baseline:installDist` first; it needs the app's code in `kotlin/app-snapshot/`.
 
 </details>
@@ -216,7 +216,7 @@ The user's own choices always come first. The model sits **before** the dictiona
    ```
    The name goes in as the receipt parser delivers it, prices and units included. The store is optional; the model detects the chain itself. `level` tells `SURE` (≥ 0.9) from `SUGGESTION`, so the app can mark less certain suggestions in the review screen. `topK(name, store, k)` returns the k most likely classes. About 0.1 ms per item on the desktop.
 5. **Golden value tests** from `tests/golden/`, so that the copied files are checked to compute exactly like Python.
-6. **A notice in the About dialog**, required by the data license (text in [docs/license.md](docs/license.md)).
+6. **A notice in the About dialog**, required by the data license (text in [docs/data-license.md](docs/data-license.md)).
 
 For recomputing a prediction in Python: `pgm.export.read` and `pgm.export.probabilities`.
 
@@ -253,7 +253,7 @@ For recomputing a prediction in Python: `pgm.export.read` and `pgm.export.probab
 | What | License |
 |---|---|
 | This repository | **GNU General Public License, version 3 or later** ([LICENSE](LICENSE)), like the app |
-| Model files (`pgm-*.bin`) | not covered by the GPL; **under clarification with Open Food Facts**, see [docs/license.md](docs/license.md) |
+| Model files (`pgm-*.bin`) | not covered by the GPL; **under clarification with Open Food Facts**, see [docs/data-license.md](docs/data-license.md) |
 | Source data | ODbL 1.0 (database) and DbCL 1.0 (contents) |
 
 ## Related work

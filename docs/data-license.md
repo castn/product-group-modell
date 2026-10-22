@@ -41,8 +41,8 @@ In the app's About dialog, together with the model version.
 
 **German:**
 
-> Die Erkennung der Warengruppen auf Kassenzetteln nutzt ein Modell, das mit Daten von Open Food Facts, Open Beauty Facts, Open Products Facts und Open Pet Food Facts erstellt wurde (https://openfoodfacts.org). Diese Daten stehen unter der Open Database License (ODbL). Wie das Modell aus den Daten erzeugt wird: https://codeberg.org/castn/product-group-modell. Modellversion ‹de-DE-2026.10.1›.
+> Die Erkennung der Warengruppen auf Kassenzetteln nutzt ein Modell, das mit Daten von Open Food Facts, Open Beauty Facts, Open Products Facts und Open Pet Food Facts erstellt wurde (https://openfoodfacts.org). Diese Daten stehen unter der Open Database License (ODbL). Wie das Modell aus den Daten erzeugt wird: https://github.com/castn/product-group-modell. Modellversion ‹de-DE-2026.10.1›.
 
 **English:**
 
-> Item group recognition on receipts uses a model built with data from Open Food Facts, Open Beauty Facts, Open Products Facts and Open Pet Food Facts (https://openfoodfacts.org), made available under the Open Database License (ODbL). How the model is built from the data: https://codeberg.org/castn/product-group-modell. Model version ‹de-DE-2026.10.1›.
+> Item group recognition on receipts uses a model built with data from Open Food Facts, Open Beauty Facts, Open Products Facts and Open Pet Food Facts (https://openfoodfacts.org), made available under the Open Database License (ODbL). How the model is built from the data: https://github.com/castn/product-group-modell. Model version ‹de-DE-2026.10.1›.
