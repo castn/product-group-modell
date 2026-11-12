@@ -300,7 +300,9 @@ Next steps:
   git tag -a model-{version} -F {rel}/TAG.txt
   git push origin model-{version}
   Create a release for the tag at {REPO_URL}/releases/new,
-  text from {rel}/RELEASE.md, attachments: {src.name}, {checksum.name}""",
+  text from {rel}/RELEASE.md, attachments: {src.name}, {checksum.name}
+  Publishing the release (not as pre-release) updates models.json on GitHub Pages
+  (.github/workflows/model-index.yml, docs/interface.md#download-index).""",
         file=sys.stderr,
     )
 

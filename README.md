@@ -108,6 +108,7 @@ The pipeline turns the open product databases into a model file for the app, in 
 | 6 | `evaluate.py` | Compares on the real receipts: dictionary alone, model alone at various thresholds, and both orders of model and dictionary. This produces the table in [Results so far](#results-so-far). | `reports/eval-<name>.md` (do not commit) |
 | 7 | `export.py` | Writes the binary model file, after checking how much rounding to `int8` changes the predictions, plus golden values for the Kotlin test. | `dist/pgm-f<format>-<market>-<release>.bin`, `.golden.tsv` |
 | 8 | `release.py` | Checks the file (header, CRC, Kotlin test, clean working tree) and prepares model, checksum and release text for upload. Uploads nothing itself. | `release/<version>/` |
+| 9 | `model_index.py` | Builds the download index from the published releases; runs as a GitHub Action when a release is published, not by hand. | `models.json` on GitHub Pages |
 
 Steps 1–3 are only needed when the raw data or the mapping changes; experiments usually start at step 4 or 5. All results end up in `data/`, `models/`, `reports/`, `dist/` and `release/` (not in the repo).
 
@@ -235,7 +236,7 @@ For recomputing a prediction in Python: `pgm.export.read` and `pgm.export.probab
 ├── mapping/         item groups, classes, category mapping, chains
 ├── augment/         abbreviations and private labels for the receipt style
 ├── src/pgm/         normalize, features, categories, augment, stores, model, export, evaldata, golden
-├── scripts/         fetch, extract_de, mapping_report, build_dataset, train, evaluate, export, release, baseline
+├── scripts/         fetch, extract_de, mapping_report, build_dataset, train, evaluate, export, release, model_index, baseline
 ├── tests/           pytest; golden/ with golden values and mini model tiny.bin
 ├── kotlin/
 │   ├── reference/   Kotlin reference (goes into the app as is) + golden value tests

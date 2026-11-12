@@ -139,6 +139,7 @@ Text (German and English) in [license.md](license.md#notice-text-for-the-app). T
 1. Train here, compare against the previous version with `scripts/evaluate.py` and export with `scripts/export.py --release <release>` (scheme: [interface.md](interface.md#versions-and-file-names)).
 2. Check with `scripts/release.py --version <modelversion>` and assemble the release, then tag and upload.
 3. Replace the file in the app as `assets/item_groups/model.bin` and add an entry to the ChangeLog.
+   An app that downloads the model instead gets it without an app release: publishing the release updates `models.json` on GitHub Pages ([download index](interface.md#download-index)).
 
 > [!WARNING]
 > If normalization or features change, the **format version** goes up. Then the three Kotlin files must be replaced in the same app version too, otherwise the new model does not load and the app works without a model.

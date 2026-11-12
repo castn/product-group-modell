@@ -218,3 +218,46 @@ pgm-f2-de-DE-2026.10.1.bin
 - Retrained, new thresholds or new classes: only the **release number** goes up.
 - New rules for normalization or features: **`format`** goes up (and with it the file name).
 - A shared model for several markets gets its own market identifier; it will be decided when the time comes.
+
+## Download index
+
+For apps that download the model instead of shipping it: `models.json` on GitHub Pages lists the **current** model per format and market.
+
+| | |
+|---|---|
+| URL | `https://castn.github.io/product-group-modell/models.json`, or the custom domain set for Pages |
+| Built by | `scripts/model_index.py` from the GitHub releases, in the workflow `.github/workflows/model-index.yml` |
+| Updated | when a `model-*` release is published, edited, unpublished or deleted, or by hand (*Run workflow*) |
+
+```json
+{
+  "schema": 1,
+  "models": [
+    {
+      "format": 2,
+      "market": "de-DE",
+      "version": "de-DE-2026.10.1",
+      "url": "https://github.com/castn/product-group-modell/releases/download/model-de-DE-2026.10.1/pgm-f2-de-DE-2026.10.1.bin",
+      "size": 1841016,
+      "sha256": "225b6b0186b0d69ac7a85cc00d3665617e332164b684b8b9ab44047883862257",
+      "commit": "1bd2f482e8a608cc14c0f6a4b5a70708e5524ab3"
+    }
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `schema` | version of this index format; an app ignores an index with an unknown schema |
+| `models` | at most one entry per `format` and `market`; may be empty |
+| `format`, `market` | the app takes the entry with its own format and market, otherwise none |
+| `version` | model version; download only if it differs from the loaded `model.version` |
+| `url`, `size`, `sha256` | the file; the app rejects it if size or SHA-256 do not match |
+| `commit` | commit the tag points to |
+
+- Included are releases with tag `model-<modelversion>` that are neither draft nor pre-release, without `-rc`, with `<file>.bin` and `<file>.bin.sha256` attached. Of these, the highest version per format and market (year, month, sequence number compared as numbers).
+- Before publishing, the workflow downloads each chosen file and checks size and SHA-256. On any error it aborts and the previous index stays online.
+- **Rollback:** mark the bad release as pre-release. The index then points to the previous release again, and the app downloads it because `version` differs.
+- A new format gets its own entry; apps with the older Kotlin files keep receiving the newest model in their format.
+- New fields may be added within a schema; apps ignore unknown fields.
+- Setup, once: repository settings → Pages → Source *GitHub Actions*; set the custom domain there as well. The URL must not change once an app version uses it.
